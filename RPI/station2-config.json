@@ -4,6 +4,6 @@
     "hostname": "209.46.124.94",
     "port": 22,
     "username": "RPI",
-    "password": "x"
+    "password": "x",
     "bandwidth_api_url": "http://209.46.124.94:3000/bandwidth/upload"
 }
