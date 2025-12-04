@@ -1,0 +1,14 @@
+[Unit]
+Description=Start reverse SSH tunnel for ZERO2 RPI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/autossh -M 20004 -N -R 20005:localhost:22 mshaffer@209.46.124.94
+Restart=always
+RestartSec=30s
+User=bob325
+
+[Install]
+WantedBy=multi-user.target
