@@ -1,0 +1,8 @@
+{
+    "stationID": "ZERO3",
+    "base_directory": "/home/bob325/recordings/",
+    "hostname": "209.46.124.94",
+    "port": 22,
+    "username": "RPI",
+    "password": "x"
+}
