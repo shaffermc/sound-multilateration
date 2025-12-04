@@ -5,5 +5,6 @@
     "port": 22,
     "username": "RPI",
     "password": "x",
-    "bandwidth_api_url": "http://209.46.124.94:3000/bandwidth/upload"
+    "bandwidth_api_url": "http://209.46.124.94:3000/bandwidth/upload",
+    "station_status_endpoint": "http://209.46.124.94:3000/stationStatus/add_station_status"
 }
