@@ -1,0 +1,17 @@
+[Unit]
+Description=Program to upload bandwidth usage every 10 minutes                          
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStartPre=/bin/bash -c 'until ping -c 1 8.8.8.8 > /dev/null 2>&1; do sleep 1; done'
+ExecStart=/usr/bin/python3 /home/bob325/sendBandwidthUsage.py
+WorkingDirectory=/home/bob325/
+Restart=always
+RestartSec=30
+User=bob325
+Group=bob325
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
