@@ -12,12 +12,8 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 # Load values from config
-stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
-base_directory = config.get('base_directory', '/home/station/recordings/')
-hostname = config.get('hostname')
-port = config.get('port', 22)
-username = config.get('username')
-password = config.get('password')
+stationID = config.get('stationID')
+base_directory = config.get('base_directory')
 bandwidth_api_url = config.get('bandwidth_api_url')
 
 # Function to get the current network usage in bytes (for both upload and download)
