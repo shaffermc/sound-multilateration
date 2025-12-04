@@ -1,4 +1,4 @@
-// This arduino code uses a GPS module uses a GPS module, solid state relay, and piezo buzzer to create a beep sound at a very precise time interval. 
+// This arduino code uses a GPS module, solid state relay, and piezo buzzer to create a beep sound at a very precise time interval. 
 
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
