@@ -1,12 +1,24 @@
+import os
+import json
 import psutil
 import requests
 import time
 from datetime import datetime
 
-# Constants for your MongoDB API
-API_URL = 'http://209.46.124.94:3000/bandwidth/upload'  # Update with your actual server URL
-DEVICE_ID = 'b8:27:eb:37:32:68'  # Unique device identifier (e.g., MAC address, UUID, etc.)
-DEVICE_NAME = 'ZERO2'
+# Load config file
+config_path = '/home/station/config.json'   
+
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+# Load values from config
+stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
+base_directory = config.get('base_directory', '/home/station/recordings/')
+hostname = config.get('hostname')
+port = config.get('port', 22)
+username = config.get('username')
+password = config.get('password')
+bandwidth_api_url = config.get('bandwidth_api_url')
 
 # Function to get the current network usage in bytes (for both upload and download)
 def get_bandwidth_usage():
@@ -35,8 +47,7 @@ def update_bandwidth_usage():
 
         # Prepare the payload for the API
         data = {
-            'device_id': DEVICE_ID,
-            'device_name': DEVICE_NAME,
+            'station_id': stationID,
             'daily_upload': upload_usage,  # Upload usage in MB
             'daily_download': download_usage,  # Download usage in MB
             'total_daily_bandwidth': upload_usage + download_usage,  # Total daily bandwidth (upload + download)
@@ -48,7 +59,7 @@ def update_bandwidth_usage():
 
         try:
             # Send the data to the server to update the database
-            response = requests.post(API_URL, json=data)
+            response = requests.post(bandwidth_api_url, json=data)
 
             # Debugging: Show response details
             print(f"Response Status Code: {response.status_code}")
