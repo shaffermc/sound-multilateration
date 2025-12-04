@@ -1,5 +1,5 @@
 {
-    "stationID": "station4",
+    "stationID": "4",
     "base_directory": "/home/station/recordings/",
     "hostname": "209.46.124.94",
     "port": 22,
