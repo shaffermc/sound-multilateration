@@ -3,7 +3,7 @@ import time
 import subprocess
 from datetime import datetime, timedelta
 
-dir = "/home/bob325/recordings/"
+dir = "/home/station/recordings/"
 
 def rec(start_time):
     try:
