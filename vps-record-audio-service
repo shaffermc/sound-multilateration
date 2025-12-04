@@ -1,0 +1,17 @@
+[Unit]
+Description=Program to record audio from microphone in 5 minute files
+After=multi-user.target
+Wants=dev-snd-usb\x2dDevice.device
+
+[Service]
+ExecStartPre=/bin/bash -c 'until aplay -l | grep -q "card 1"; do sleep 1; done'
+ExecStart=/usr/bin/python3 /home/bob325/recordAudio.py
+WorkingDirectory=/home/bob325/
+Restart=always
+RestartSec=30
+User=bob325
+Group=bob325
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
