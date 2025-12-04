@@ -3,21 +3,24 @@ import json
 import requests
 import time
 import paramiko
-import logging  # Added for logging
+import logging  
 
-# Path where your files are stored
-base_directory = '/home/bob325/recordings/'
+# Load config file
+config_path = '/home/station/config.json'   
 
-stationID = 'ZERO2'
+with open(config_path, 'r') as f:
+    config = json.load(f)
 
-# Set the server, username, and password for the VPS
-hostname = '209.46.124.94'
-port = 22  # Default SFTP port
-username = 'RPI'
-password = 'x'
+# Load values from config
+stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
+base_directory = config.get('base_directory', '/home/station/recordings/')
+hostname = config.get('hostname')
+port = config.get('port', 22)
+username = config.get('username')
+password = config.get('password')
 
 # Set up logging
-logging.basicConfig(filename='/home/bob325/process_instructions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='/home/station/process_instructions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
 def upload_file_via_sftp(local_file_path, remote_file_path):
