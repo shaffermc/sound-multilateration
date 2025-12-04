@@ -1,6 +1,6 @@
 {
-    "stationID": "ZERO4",
-    "base_directory": "/home/bob325/recordings/",
+    "stationID": "station4",
+    "base_directory": "/home/station/recordings/",
     "hostname": "209.46.124.94",
     "port": 22,
     "username": "RPI",
