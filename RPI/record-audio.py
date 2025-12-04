@@ -3,13 +3,18 @@ import time
 import subprocess
 from datetime import datetime, timedelta
 
-dir = "/home/station/recordings/"
+config_path = '/home/station/config.json'   
+
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+base_directory = config.get('base_directory', '/home/station/recordings/')
 
 def rec(start_time):
     try:
         # Create a timestamp for the filename
         timestamp = start_time.strftime("%Y-%m-%d-%H-%M-%S")
-        filename = os.path.join(dir, f"{timestamp}.wav")
+        filename = os.path.join(base_directory, f"{timestamp}.wav")
 
         # Provide feedback about when the next recording is scheduled
         print(f"[INFO] Starting recording at {start_time.strftime('%H:%M:%S')}")
