@@ -12,12 +12,13 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 # Load values from config
-stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
-base_directory = config.get('base_directory', '/home/station/recordings/')
+stationID = config.get('stationID') 
+base_directory = config.get('base_directory')
 hostname = config.get('hostname')
 port = config.get('port', 22)
 username = config.get('username')
 password = config.get('password')
+instructions_url = config.get('instructions_url')
 
 # Set up logging
 logging.basicConfig(filename='/home/station/process_instructions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -70,9 +71,9 @@ def delete_files_in_directory(directory):
 # Function to fetch instructions and process them
 def process_instructions():
     # Fetch instructions from the API
-    url = 'http://209.46.124.94:3000/instructions/get_instructions'
+    #url = 'http://209.46.124.94:3000/instructions/get_instructions'
     try:
-        response = requests.get(url)
+        response = requests.get(instructions_url)
         response.raise_for_status()  # Will raise an exception for HTTP error codes (4xx/5xx)
         instructions = response.json()  # Parse the JSON response
     except requests.exceptions.RequestException as e:
