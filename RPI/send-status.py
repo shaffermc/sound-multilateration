@@ -5,6 +5,17 @@ import requests
 import time
 import os
 
+# Load config file
+config_path = '/home/station/config.json'   
+
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+# Load values from config
+stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
+base_directory = config.get('base_directory')
+station_status_endpoint = config.get('station_status_endpoint')
+
 # Function to get the uptime in a human-readable format (in minutes, rounded)
 def get_uptime():
     boot_time = psutil.boot_time()
@@ -54,23 +65,18 @@ def upload_data(url, data):
         print(f"Error uploading data: {e}")
 
 def get_file_count():
-    directory_path = '/home/bob325/recordings'
     try:
         # List all files in the directory and count them
-        files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
+        files = [f for f in os.listdir(base_directory) if os.path.isfile(os.path.join(base_directory, f))]
         return len(files)
     except Exception as e:
-        print(f"Error counting files in directory {directory_path}: {e}")
+        print(f"Error counting files in directory {base_directory}: {e}")
         return 0  # Return 0 in case of error
 
-
 def main():
-    # URL endpoint where the MongoDB API accepts data
-    endpoint_url = "http://209.46.124.94:3000/stationStatus/add_station_status"
 
     while True:
         # Gather system information
-        location = "ZERO1"
         uptime = get_uptime()  # Get uptime in minutes
         free_disk_space = get_free_disk_space()  # Get free space in MB
         file_count = get_file_count()
@@ -79,7 +85,7 @@ def main():
 
         # Prepare the data to send (convert all values to strings)
         data = {
-            'station_location': location,  # Ensure location is a string
+            'station_location': stationID,  # Ensure location is a string
             'station_uptime': str(uptime),  # Convert uptime to string
             'station_free_space': str(free_disk_space),  # Convert free_disk_space to string (MB)
             'station_file_count': str(file_count), # How many files in record dir
