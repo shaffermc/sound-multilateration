@@ -9,8 +9,8 @@ ExecStart=/usr/bin/python3 /home/station/checkForInstructions.py
 WorkingDirectory=/home/station/
 Restart=always
 RestartSec=30
-User=bob325
-Group=bob325
+User=station
+Group=station
 Environment=PYTHONUNBUFFERED=1
 
 [Install]
