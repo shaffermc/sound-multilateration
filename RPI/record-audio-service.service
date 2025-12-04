@@ -5,8 +5,8 @@ Wants=dev-snd-usb\x2dDevice.device
 
 [Service]
 ExecStartPre=/bin/bash -c 'until aplay -l | grep -q "card 1"; do sleep 1; done'
-ExecStart=/usr/bin/python3 /home/bob325/recordAudio.py
-WorkingDirectory=/home/bob325/
+ExecStart=/usr/bin/python3 /home/station/recordAudio.py
+WorkingDirectory=/home/station/
 Restart=always
 RestartSec=30
 User=bob325
