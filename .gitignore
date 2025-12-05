@@ -1,0 +1,82 @@
+# -------------------------
+# Node / Express
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# PM2 logs
+.pids/
+logs/
+*.log
+
+# Build artifacts (if using React or bundling)
+build/
+dist/
+public/static/
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Matplotlib / numpy cache
+*.cache
+*.matplotlib/
+
+# -------------------------
+# Project files
+# -------------------------
+
+# Static plot output from Python
+static/*.png
+static/*.jpg
+static/*.svg
+
+# Local recordings
+recordings/
+*.wav
+
+# VPS audio sync folder (if local copy exists)
+audio/
+
+# Config files that contain credentials or station IDs
+config.json
+config/*.json
+*.secret.json
+
+# SSH keys
+*.pem
+*.key
+
+# -------------------------
+# OS / Editor files
+# -------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+
