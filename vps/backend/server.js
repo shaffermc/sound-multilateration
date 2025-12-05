@@ -54,7 +54,7 @@ app.get('/generate_plot', (req, res) => {
   });
 });
 
-const audioDirectory = '/home/mshaffer/www/sound-mulitlateration/vps/backend/services/audio_files'; 
+const audioDirectory = '/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files'; 
 app.use('/audio', express.static(audioDirectory));
 
 app.get('/audio-files', (req, res) => {
