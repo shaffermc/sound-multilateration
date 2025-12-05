@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import SensorTable from './components/SensorTable'; 
 import StationStatusTable from './components/StationStatusTable';
 import AddInstruction from './components/AddInstruction';
 import InstructionsList from './components/InstructionsList';
@@ -20,11 +19,9 @@ function App() {
         <InstructionsList /> 
       </div>
       <div>
-        <SensorTable />
-      </div>
-      <div>
         <StationStatusTable />
       </div>
+      {/*
       <div>
         <BandwidthDisplay />
       </div>
@@ -34,6 +31,7 @@ function App() {
       <div>
         <SoundOriginLocator /> 
       </div>
+      */}
     </>
   );
 }
