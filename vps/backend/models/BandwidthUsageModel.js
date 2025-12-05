@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Define the schema for Device Daily Bandwidth Usage
 const BandwidthUsageSchema = new mongoose.Schema(
   {
     device_id: {
@@ -17,15 +16,15 @@ const BandwidthUsageSchema = new mongoose.Schema(
     },
     daily_upload: {
       type: Number,  // Total daily upload bandwidth usage in megabytes
-      default: 0,  // Default is 0 MB
+      default: 0, 
     },
     daily_download: {
       type: Number,  // Total daily download bandwidth usage in megabytes
-      default: 0,  // Default is 0 MB
+      default: 0, 
     },
     total_daily_bandwidth: {
       type: Number,  // Total daily bandwidth usage (upload + download) in megabytes
-      default: 0,  // Default is 0 MB
+      default: 0,
     },
     timestamp: {
       type: Number,  // Timestamp when the record was last updated

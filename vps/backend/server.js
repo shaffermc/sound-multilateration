@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const { exec } = require('child_process');  // To execute the Python script
+const { exec } = require('child_process'); 
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
@@ -23,12 +23,11 @@ mongoose.connect(MONGO_URI)
     console.error('MongoDB connection error:', err);
   });
 
-// Simple route
+
 app.get('/', (req, res) => {
   res.send('Sensor Data Logger API');
 });
 
-// Route to generate plot
 app.get('/generate_plot', (req, res) => {
   const { t_A, t_B, t_C } = req.query;
 
@@ -55,11 +54,9 @@ app.get('/generate_plot', (req, res) => {
   });
 });
 
-// Example route for audio files (optional, can be adapted as needed)
-const audioDirectory = '/home/mshaffer/www/stations/audio';  // Path to your audio directory
+const audioDirectory = '/home/mshaffer/www/sound-mulitlateration/vps/backend/services/audio_files'; 
 app.use('/audio', express.static(audioDirectory));
 
-// Route to get all audio files (adjust as per your requirements)
 app.get('/audio-files', (req, res) => {
   fs.readdir(audioDirectory, (err, files) => {
     if (err) {
@@ -74,8 +71,6 @@ app.get('/audio-files', (req, res) => {
   });
 });
 
-// Other routes (sensor data, station status, etc.)
-// Assuming these are defined elsewhere, like in routes/SensorDataRoutes.js, etc.
 
 const stationStatusRoutes = require('./routes/StationStatusRoutes');
 app.use('/stationStatus', stationStatusRoutes);
@@ -83,10 +78,8 @@ app.use('/stationStatus', stationStatusRoutes);
 const InstructionsRoutes = require('./routes/InstructionsRoutes');
 app.use('/instructions', InstructionsRoutes);
 
-// Add the Bandwidth routes (for bandwidth data upload, get, and update)
-const BandwidthUsageRoutes = require('./routes/BandwidthUsageRoutes');  // Import your bandwidth routes
-app.use('/bandwidth', BandwidthUsageRoutes);  // Use the bandwidth routes
+const BandwidthUsageRoutes = require('./routes/BandwidthUsageRoutes');  
+app.use('/bandwidth', BandwidthUsageRoutes); 
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

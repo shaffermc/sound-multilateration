@@ -22,6 +22,7 @@ def combine_audio(instruction_value):
     audio_file_1 = f"{instruction_value}_audio1.wav"
     audio_file_2 = f"{instruction_value}_audio2.wav"
     audio_file_3 = f"{instruction_value}_audio3.wav"
+    audio_file_4 = f"{instruction_value}_audio4.wav"
 
     # Check if all audio files exist
     if not os.path.exists(audio_file_1) or not os.path.exists(audio_file_2) or not os.path.exists(audio_file_3):
@@ -32,18 +33,19 @@ def combine_audio(instruction_value):
     audio1 = AudioSegment.from_file(audio_file_1)
     audio2 = AudioSegment.from_file(audio_file_2)
     audio3 = AudioSegment.from_file(audio_file_3)
+    audio4 = AudioSegment.from_file(audio_file_4)
 
     # Make sure the audio files are the same length and sample rate
-    if audio1.frame_rate != audio2.frame_rate or audio1.frame_rate != audio3.frame_rate:
+    if audio1.frame_rate != audio2.frame_rate or audio1.frame_rate != audio3.frame_rate or audio1.frame_rate != audio4.frame_rate:
         print("The audio files must have the same sample rate.")
         return None
 
-    if len(audio1) != len(audio2) or len(audio1) != len(audio3):
+    if len(audio1) != len(audio2) or len(audio1) != len(audio3) or len(audio1) != len(audio4):
         print("The audio files must be the same length.")
         return None
 
     # Stack the tracks on top of each other (same length)
-    combined_audio = AudioSegment.from_mono_audiosegments(audio1, audio2, audio3)
+    combined_audio = AudioSegment.from_mono_audiosegments(audio1, audio2, audio3, audio4)
 
     # Export the combined audio to a new file
     output_file = f"combined_{instruction_value}.wav"
@@ -79,6 +81,7 @@ def process_instructions():
         station1_complete = instruction['station1_complete']
         station2_complete = instruction['station2_complete']
         station3_complete = instruction['station3_complete']
+        station4_complete = instruction['station4_complete']
         instruction_value = instruction['instruction_value']
         timestamp = instruction['timestamp']
         all_complete = instruction['all_complete']
@@ -90,7 +93,7 @@ def process_instructions():
             continue
 
         # Check if the conditions for station completion are met and the instruction is recent
-        if station1_complete and station2_complete and station3_complete:
+        if station1_complete and station2_complete and station3_complete and station4_complete:
             # Check if the instruction was created within the last couple of minutes (e.g., 2 minutes)
             time_diff = current_time - timestamp
             if time_diff <= 1200000:  # 2 minutes = 120000 milliseconds

@@ -7,7 +7,7 @@ const router = express.Router();
 // Route to create a new instruction
 router.post('/add_instructions', async (req, res) => {
   try {
-    const { instruction_type, instruction_target, instruction_value, station1_complete, station2_complete, station3_complete, all_complete } = req.body;
+    const { instruction_type, instruction_target, instruction_value, station1_complete, station2_complete, station3_complete, station4_complete, all_complete } = req.body;
 
     // Create a new instruction document
     const newInstruction = new Instructions({
@@ -17,6 +17,7 @@ router.post('/add_instructions', async (req, res) => {
       station1_complete: station1_complete || false,
       station2_complete: station2_complete || false,
       station3_complete: station3_complete || false,
+      station4_complete: station4_complete || false,
       all_complete: all_complete || false,
     });
 

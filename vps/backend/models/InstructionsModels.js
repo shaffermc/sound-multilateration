@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Define the schema for the sound requests
 const InstructionsSchema = new mongoose.Schema(
   {
     timestamp: {
@@ -12,23 +11,26 @@ const InstructionsSchema = new mongoose.Schema(
     instruction_value: String,
     station1_complete: {
       type: Boolean,
-      default: false,  // Default value for this field
+      default: false, 
     },
     station2_complete: {
       type: Boolean,
-      default: false,  // Default value for this field
+      default: false, 
     },
     station3_complete: {
       type: Boolean,
-      default: false,  // Default value for this field
+      default: false, 
+    },
+    station4_complete: {
+      type: Boolean,
+      default: false,
     },
     all_complete: {
       type: Boolean,
-      default: false,  // Default value for this field
+      default: false, 
     }
   }
 );
 
-// Create and export the model
 const Instructions = mongoose.model('Instructions', InstructionsSchema);
 module.exports = Instructions;

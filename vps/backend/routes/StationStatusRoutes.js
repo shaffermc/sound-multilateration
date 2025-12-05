@@ -31,7 +31,7 @@ router.post('/add_station_status', async (req, res) => {
   router.get('/get_station_status', async (req, res) => {
     try {
       // List of station locations to fetch status for (add locations to this array as needed)
-      const locations = ['ZERO1','ZERO2','ZERO3'];  // Add more locations to this array when needed
+      const locations = ['1','2','3','4'];  // Add more locations to this array when needed
   
       // Array to store the latest station status for each location
       const latestStatusPromises = locations.map(async (location) => {
@@ -59,7 +59,5 @@ router.post('/add_station_status', async (req, res) => {
       res.status(500).json({ error: 'Error fetching station status' });
     }
   });
-  
-  
 
 module.exports = router;
