@@ -76,11 +76,6 @@ app.get('/audio-files', (req, res) => {
 
 // Other routes (sensor data, station status, etc.)
 // Assuming these are defined elsewhere, like in routes/SensorDataRoutes.js, etc.
-const sensorDataRoutes = require('./routes/SensorDataRoutes');
-app.use('/sensorData', sensorDataRoutes);
-
-const sensorEventRoutes = require('./routes/SensorEventRoutes');
-app.use('/sensorEvent', sensorEventRoutes);
 
 const stationStatusRoutes = require('./routes/StationStatusRoutes');
 app.use('/stationStatus', stationStatusRoutes);
