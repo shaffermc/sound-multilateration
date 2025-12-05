@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import SensorTable from './components/SensorTable';  // Import the SensorTable component
+import SensorTable from './components/SensorTable'; 
 import StationStatusTable from './components/StationStatusTable';
 import AddInstruction from './components/AddInstruction';
 import InstructionsList from './components/InstructionsList';
-import AudioFileList from './components/AudioFileList';  // Adjust path if necessary
+import AudioFileList from './components/AudioFileList'; 
 import SoundOriginLocator from './components/SoundOriginLocator';
-import BandwidthDisplay from './components/BandwidthDisplay';  // Ensure the correct path
+import BandwidthDisplay from './components/BandwidthDisplay';  
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,7 +17,7 @@ function App() {
         <AddInstruction />
       </div>
       <div>
-        <InstructionsList /> {/* This will render the InstructionsList without extra whitespaces */}
+        <InstructionsList /> 
       </div>
       <div>
         <SensorTable />
@@ -32,7 +32,7 @@ function App() {
         <AudioFileList />
       </div>
       <div>
-        <SoundOriginLocator /> {/* This will render the sound origin locator component */}
+        <SoundOriginLocator /> 
       </div>
     </>
   );

@@ -53,6 +53,7 @@ const AddInstruction = () => {
       station1_complete: false, // Default to false
       station2_complete: false, // Default to false
       station3_complete: false, // Default to false
+      station4_complete: false,
       all_complete: false, // Default to false
     };
 
@@ -98,9 +99,10 @@ const AddInstruction = () => {
           >
             <option value="">Select Instruction Target</option>
             <option value="ALL">ALL</option>
-            <option value="ZERO1">ZERO1</option>
-            <option value="ZERO2">ZERO2</option>
-            <option value="ZERO3">ZERO3</option>
+            <option value="1">Station 1</option>
+            <option value="2">Station 2</option>
+            <option value="3">Station 3</option>
+            <option value="4">Station 4</option>
           </select>
         </div>
 

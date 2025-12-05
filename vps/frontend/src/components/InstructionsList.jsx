@@ -63,6 +63,7 @@ const InstructionList = () => {
             <th>Station 1 Complete</th>
             <th>Station 2 Complete</th>
             <th>Station 3 Complete</th>
+            <th>Station 4 Complete</th>
             <th>All Complete</th> {/* Display All Complete */}
             <th>Actions</th>
           </tr>
@@ -76,6 +77,7 @@ const InstructionList = () => {
               <td>{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
               <td>{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
               <td>{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td>{instruction.station4_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
               <td>{instruction.all_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' for All Complete */}
               <td>
                 <button onClick={() => handleDelete(instruction._id)}>Delete</button>

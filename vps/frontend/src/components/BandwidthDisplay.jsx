@@ -7,7 +7,7 @@ const BandwidthDisplay = () => {
   const [error, setError] = useState(null);
 
   // Define the list of device names to fetch data for
-  const deviceNames = ['ZERO1', 'ZERO2', 'ZERO3'];
+  const deviceNames = ['1', '2', '3','4'];
 
   // Function to fetch bandwidth usage data from the API for multiple device names
   const fetchBandwidthData = async () => {
