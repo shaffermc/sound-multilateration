@@ -46,22 +46,15 @@ app.get('/generate_plot', (req, res) => {
   // Build the Python command including the timestamp
   const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
 
-  // Run the Python script
   exec(pythonCmd, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      //return res.status(500).send('Error generating plot');
-    }
-    if (stderr) {
-      console.warn(`stderr from Python script: ${stderr}`);
-    }
+    if (error) return res.status(500).json({ error: "Python failed" });
 
-    const plotPath = path.join(__dirname, 'static', 'output.png');
-
-    if (fs.existsSync(plotPath)) {
-      res.sendFile(plotPath);  // Send the generated plot
-    } else {
-      res.status(500).send('Plot not found');
+    try {
+      const data = JSON.parse(stdout);
+      res.json(data);
+    } catch (e) {
+      console.error("JSON parse error:", e);
+      res.status(500).json({ error: "Invalid Python output" });
     }
   });
 });

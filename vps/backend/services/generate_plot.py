@@ -3,6 +3,9 @@ import numpy as np
 from scipy.optimize import least_squares
 import matplotlib.pyplot as plt
 import math
+import base64
+from io import BytesIO
+
 
 v = 343.0  # speed of sound m/s
 
@@ -109,9 +112,18 @@ def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
     ax.grid(True)
     ax.set_aspect("equal")
 
-    plt.savefig(filename, bbox_inches='tight', dpi=150)
-    print(f"Plot saved to {filename}")
+    buf = BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    buf.seek(0)
+    encoded = base64.b64encode(buf.read()).decode('utf-8')
     plt.close()
+    return encoded
 
+img_b64 = plot_hyperbolas(delays, omit_one_solutions, global_solution)
 
-plot_hyperbolas(delays, omit_one_solutions, global_solution, "output.png")
+import json
+print(json.dumps({
+    "image": img_b64,
+    "solutions": [s.tolist() for s in omit_one_solutions],
+    "global_solution": global_solution.tolist()
+}))
