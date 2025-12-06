@@ -5,13 +5,13 @@ function SoundOriginLocator() {
   // Default values (hard-coded)
   // ---------------------------
   const defaultCoords = [
-    { lat: 37.421998, lon: -122.084 },  // Station A
-    { lat: 37.422500, lon: -122.084 },  // Station B
-    { lat: 37.422500, lon: -122.083 },  // Station C
-    { lat: 37.421998, lon: -122.083 },  // Station D
+    { lat: 40.75, lon: -73.99 },  // Station A
+    { lat: 40.75, lon: -73.9549 },  // Station B
+    { lat: 40.77695, lon: -73.9549 },  // Station C
+    { lat: 40.77695, lon: -73.9900  },  // Station D
   ];
 
-  const defaultTimes = [0.5, 0.7, 1.2, 1.3]; // tA, tB, tC, tD in seconds
+  const defaultTimes = [0.1, 0.2, .3, .25]; // tA, tB, tC, tD in seconds
 
   // ---------------------------
   // State
@@ -45,7 +45,7 @@ function SoundOriginLocator() {
       `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`,
       `timestamp=${timestamp}`
     ].join('&');
-
+    console.log("Generated URL:", query);
     try {
       const response = await fetch(`http://209.46.124.94:3000/generate_plot?${query}`);
       if (!response.ok) throw new Error('Plot generation failed');

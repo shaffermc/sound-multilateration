@@ -29,10 +29,25 @@ app.get('/', (req, res) => {
 });
 
 app.get('/generate_plot', (req, res) => {
-  const { t_A, t_B, t_C } = req.query;
+  const {
+    lat1, lon1,
+    lat2, lon2,
+    lat3, lon3,
+    lat4, lon4,
+    tA, tB, tC, tD,
+    timestamp  // Make sure you capture the timestamp from the query string
+  } = req.query;
 
-  // Run the Python script to generate the plot image
-  exec(`python3 services/generate_plot.py ${t_A} ${t_B} ${t_C}`, (error, stdout, stderr) => {
+  // Validate that all required query parameters exist, including timestamp
+  if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD, timestamp].every(Boolean)) {
+    return res.status(400).send('Missing required query parameters');
+  }
+
+  // Build the Python command including the timestamp
+  const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD} ${timestamp}`;
+
+  // Run the Python script
+  exec(pythonCmd, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return res.status(500).send('Error generating plot');
@@ -42,17 +57,17 @@ app.get('/generate_plot', (req, res) => {
       return res.status(500).send('Error generating plot');
     }
 
-    // The Python script generates the plot as 'plot.png' in the static directory
-    const plotPath = path.join(__dirname, 'static', 'plot.png');
-    
-    // Check if the plot image exists, then send it to the client
+    const plotPath = path.join(__dirname, 'static', 'tdoa_plot.png');
+
     if (fs.existsSync(plotPath)) {
-      res.sendFile(plotPath);  // Send the generated plot as a response
+      res.sendFile(plotPath);  // Send the generated plot
     } else {
       res.status(500).send('Plot not found');
     }
   });
 });
+
+
 
 const audioDirectory = '/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files'; 
 app.use('/audio', express.static(audioDirectory));
