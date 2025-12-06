@@ -51,7 +51,7 @@ function SoundOriginLocator() {
       setImageUrl(`http://209.46.124.94:3000/static/output.png`);
     } catch (err) {
       console.error(err);
-      alert('Error generating plot');
+      //alert('Error generating plot');
     }
   };
 
