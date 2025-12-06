@@ -50,7 +50,7 @@ app.get('/generate_plot', (req, res) => {
   exec(pythonCmd, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
-      return res.status(500).send('Error generating plot');
+      //return res.status(500).send('Error generating plot');
     }
     if (stderr) {
       console.warn(`stderr from Python script: ${stderr}`);
