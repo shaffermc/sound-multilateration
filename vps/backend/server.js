@@ -53,7 +53,7 @@ app.get('/generate_plot', (req, res) => {
       return res.status(500).send('Error generating plot');
     }
     if (stderr) {
-      console.error(`stderr: ${stderr}`);
+      console.warn(`stderr from Python script: ${stderr}`);
       return res.status(500).send('Error generating plot');
     }
 
