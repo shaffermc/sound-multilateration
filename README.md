@@ -5,6 +5,4 @@ The system consists of 4 listening stations and a central server that the listen
 Each listening station consists of a Raspberry Pi Zero, Arduino Nano, 4G modem, microphone, GPS receiver.
 The central server is a Virtual Private Server running Ubuntu OS. 
 
-**Work in Progress:**  
-> This repository is public for transparency and feedback, but the software is **not yet fully working**.  
-> Use at your own risk.
+This repository is a work in progress and it is not quite fully functional yet. 
