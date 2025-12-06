@@ -4,8 +4,6 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
 const RetrieveAudio = () => {
-  const [instructionType, setInstructionType] = useState('');
-  const [instructionTarget, setInstructionTarget] = useState('');
   const [instructionValue, setInstructionValue] = useState(null); // Store as Date object
   const [message, setMessage] = useState('');
 
@@ -22,21 +20,6 @@ const RetrieveAudio = () => {
     return `${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
   };
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'instructionType':
-        setInstructionType(value);
-        break;
-      case 'instructionTarget':
-        setInstructionTarget(value);
-        break;
-      default:
-        break;
-    }
-  };
-
   // Handle date change
   const handleDateChange = (date) => {
     setInstructionValue(date);
@@ -47,22 +30,19 @@ const RetrieveAudio = () => {
     e.preventDefault();
 
     const newInstruction = {
-      instruction_type: instructionType,
-      instruction_target: instructionTarget,
+      instruction_type: "sound_request",
+      instruction_target: "ALL",
       instruction_value: formatDate(instructionValue), // Convert Date object to string
-      station1_complete: false, // Default to false
-      station2_complete: false, // Default to false
-      station3_complete: false, // Default to false
+      station1_complete: false, 
+      station2_complete: false,
+      station3_complete: false, 
       station4_complete: false,
-      all_complete: false, // Default to false
+      all_complete: false, 
     };
 
     try {
       const response = await axios.post('http://209.46.124.94:3000/instructions/add_instructions', newInstruction);
-      setMessage('Instruction added successfully!');
-      // Clear the form after submission
-      setInstructionType('');
-      setInstructionTarget('');
+      setMessage('Request submitted. Audio processing. ');
       setInstructionValue(null); // Reset to null
     } catch (error) {
       setMessage('Error adding instruction. Please try again.');
@@ -72,10 +52,11 @@ const RetrieveAudio = () => {
 
   return (
     <div>
-      <h2>Select the 5 minute block of time to analyze:</h2>
+      <h2  style={{ textAlign: 'center' }}>Sound Source Locator</h2>
+      Please select the date and time of sound:
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Date and Time Picker (Date/Time):</label>
+          <label>(Date/Time):</label>
           <DatePicker
             selected={instructionValue}  // Use the Date object directly
             onChange={handleDateChange}
@@ -84,32 +65,6 @@ const RetrieveAudio = () => {
             timeIntervals={5}  // 5 minute increments
             required
           />
-        </div>
-
-        <div>
-          <label>Request Type:</label>
-          <select
-            name="instructionType"
-            value={instructionType}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="sound_request">Retrieve Audio</option>
-            <option value="sound_request">Retrieve Audio</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Instruction Target:</label>
-          <select
-            name="instructionTarget"
-            value={instructionTarget}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="ALL">All 4 Listening Stations</option>
-            <option value="ALL">All 4 Listening Stations</option>
-          </select>
         </div>
         <button type="submit">Submit Request</button>
       </form>

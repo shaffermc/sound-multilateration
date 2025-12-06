@@ -19,22 +19,25 @@ function App() {
       <div>
         <InstructionsList /> 
       </div>
-      <div>
-        <AddInstruction />
-      </div>
-          {/*
-      <div>
-        <StationStatusTable />
-      </div>
-      <div>
-        <BandwidthDisplay />
-      </div>
+
       <div>
         <AudioFileList />
       </div>
       <div>
         <SoundOriginLocator /> 
       </div>
+ 
+          {/*
+               <div>
+        <AddInstruction />
+      </div>
+      <div>
+        <StationStatusTable />
+      </div>
+      <div>
+        <BandwidthDisplay />
+      </div>
+
       */}
     </>
   );

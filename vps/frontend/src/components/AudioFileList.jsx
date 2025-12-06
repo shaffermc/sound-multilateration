@@ -35,10 +35,11 @@ const AudioFileList = () => {
 
   return (
     <div>
+      <h3 style={{ textAlign: 'left' }}>Available Audio Files:</h3>
       {audioFiles.length === 0 ? (
         <p>No audio files found.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <table style={{ width: '30%', borderCollapse: 'collapse', marginTop: '20px' }}>
           <thead>
             <tr>
               <th style={styles.tableHeader}>File Name</th>

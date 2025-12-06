@@ -72,7 +72,7 @@ const AddInstruction = () => {
 
   return (
     <div>
-      <h3>Advanced Options - Send Commands to Individual Stations</h3>
+      <h3>Advanced Options</h3>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Instruction Type:</label>
@@ -125,5 +125,6 @@ const AddInstruction = () => {
     </div>
   );
 };
+
 
 export default AddInstruction;
