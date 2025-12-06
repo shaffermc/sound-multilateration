@@ -34,30 +34,43 @@ app.get('/generate_plot', (req, res) => {
     lat2, lon2,
     lat3, lon3,
     lat4, lon4,
-    tA, tB, tC, tD,
-    timestamp  // Make sure you capture the timestamp from the query string
+    tA, tB, tC, tD
   } = req.query;
 
-  // Validate that all required query parameters exist, including timestamp
+  // Validate parameters
   if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD].every(Boolean)) {
     return res.status(400).send('Missing required query parameters');
   }
 
-  // Build the Python command including the timestamp
   const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
 
+  console.log("Running:", pythonCmd);
+
   exec(pythonCmd, (error, stdout, stderr) => {
-    if (error) return res.status(500).json({ error: "Python failed" });
+
+    console.log("---- PYTHON STDOUT ----");
+    console.log(stdout);
+    console.log("---- PYTHON STDERR ----");
+    console.log(stderr);
+
+    if (error) {
+      console.error("exec error:", error);
+      return res.status(500).json({ error: "Python execution failed" });
+    }
+
+    // Remove leading/trailing whitespace (VERY important)
+    const cleaned = stdout.trim();
 
     try {
-      const data = JSON.parse(stdout);
-      res.json(data);
-    } catch (e) {
-      console.error("JSON parse error:", e);
-      res.status(500).json({ error: "Invalid Python output" });
+      const data = JSON.parse(cleaned);
+      return res.json(data);
+    } catch (err) {
+      console.error("JSON parse failed:\n", cleaned);
+      return res.status(500).json({ error: "Invalid JSON from Python" });
     }
   });
 });
+
 
 
 

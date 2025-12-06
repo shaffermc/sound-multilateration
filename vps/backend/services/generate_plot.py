@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 import math
 import base64
 from io import BytesIO
-
+import json
 
 v = 343.0  # speed of sound m/s
 
-GRID_CENTER_X = 2000   # shift X axis for plotting
-GRID_CENTER_Y = 2000   # shift Y axis for plotting
+GRID_CENTER_X = 2000
+GRID_CENTER_Y = 2000
 
 def gps_to_xy(lat_ref, lon_ref, lat, lon):
     meters_per_deg_lat = 111320
@@ -19,15 +19,15 @@ def gps_to_xy(lat_ref, lon_ref, lat, lon):
     y = (lat - lat_ref) * meters_per_deg_lat
     return np.array([x, y])
 
+# Require 12 args: lat1 lon1 ... lat4 lon4 tA tB tC tD
 if len(sys.argv) != 13:
-    print("Usage: python generate_plot.py lat1 lon1 lat2 lon2 lat3 lon3 lat4 lon4 tA tB tC tD")
     sys.exit(1)
 
 # Extract GPS coordinates
 lats = [float(sys.argv[i]) for i in [1,3,5,7]]
 lons = [float(sys.argv[i]) for i in [2,4,6,8]]
 
-# Convert GPS to local XY using the first station as origin
+# Convert GPS to XY
 stations_xy = [gps_to_xy(lats[0], lons[0], lats[i], lons[i]) for i in range(4)]
 
 # Extract delays
@@ -59,16 +59,13 @@ def solve_3station_tdoa(station_ids, delays):
 omit_one_solutions = [solve_3station_tdoa(case, delays) for case in cases]
 
 guess_global = np.mean(stations_xy, axis=0)
-global_solution = least_squares(tdoa_residuals_global, guess_global, args=(stations_xy, delays)).x
+global_solution = least_squares(
+    tdoa_residuals_global,
+    guess_global,
+    args=(stations_xy, delays)
+).x
 
-print("\nOmit-one solutions:")
-for i, s in enumerate(omit_one_solutions):
-    print(f"Case {i+1}: {s}")
-
-print("\nGlobal solution:")
-print(global_solution)
-
-def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
+def plot_hyperbolas(delays, solutions, global_solution):
     S = stations_xy
     dd = {}
     for i in range(4):
@@ -77,7 +74,6 @@ def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
 
     grid_size = 3000
     N = 800
-    # Apply grid shift here
     xs = np.linspace(GRID_CENTER_X - grid_size, GRID_CENTER_X + grid_size, N)
     ys = np.linspace(GRID_CENTER_Y - grid_size, GRID_CENTER_Y + grid_size, N)
     X, Y = np.meshgrid(xs, ys)
@@ -85,6 +81,7 @@ def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
     fig, ax = plt.subplots(figsize=(9,9))
     colors = ['red','blue','green','orange','purple','brown']
 
+    # Draw hyperbolas
     for idx, ((i,j), dd_ij) in enumerate(dd.items()):
         Si, Sj = S[i], S[j]
         Di = np.sqrt((X - Si[0])**2 + (Y - Si[1])**2)
@@ -92,36 +89,34 @@ def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
         H = (Di - Dj) - dd_ij
         ax.contour(X, Y, H, levels=[0], colors=colors[idx % len(colors)], linewidths=1.1)
 
-    # Plot stations
+    # Stations
     for i, s in enumerate(S):
-        ax.scatter(s[0], s[1], s=100, label=f"S{i+1}")
+        ax.scatter(s[0], s[1], s=100)
         ax.text(s[0], s[1], f" S{i+1}", fontsize=12)
 
-    # Plot omit-one solutions
+    # Omit-one solutions
     for i, sol in enumerate(solutions):
         ax.scatter(sol[0], sol[1], marker='x', s=150, color='black')
         ax.text(sol[0], sol[1], f" Sol {i+1}", color='black')
 
-    # Plot global solution
-    ax.scatter(global_solution[0], global_solution[1], marker='*', s=200, color='gold', label="Global Solution")
+    # Global solution
+    ax.scatter(global_solution[0], global_solution[1], marker='*', s=200, color='gold')
 
-    ax.set_title("TDOA Hyperbolas and Source Estimates")
-    ax.set_xlabel("X (meters)")
-    ax.set_ylabel("Y (meters)")
-    ax.legend()
-    ax.grid(True)
     ax.set_aspect("equal")
+    ax.grid(True)
 
+    # Convert to base64
     buf = BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
     buf.seek(0)
     encoded = base64.b64encode(buf.read()).decode('utf-8')
     plt.close()
     return encoded
 
+# Generate base64 plot
 img_b64 = plot_hyperbolas(delays, omit_one_solutions, global_solution)
 
-import json
+# Output ONLY JSON
 print(json.dumps({
     "image": img_b64,
     "solutions": [s.tolist() for s in omit_one_solutions],
