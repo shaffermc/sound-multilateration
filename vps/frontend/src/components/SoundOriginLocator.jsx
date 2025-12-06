@@ -48,7 +48,7 @@ function SoundOriginLocator() {
     try {
       const response = await fetch(`http://209.46.124.94:3000/generate_plot?${query}`);
       if (!response.ok) throw new Error('Plot generation failed');
-      setImageUrl(`http://209.46.124.94:3000/output.png`);
+      setImageUrl(`http://209.46.124.94:3000/static/output.png`);
     } catch (err) {
       console.error(err);
       //alert('Error generating plot');

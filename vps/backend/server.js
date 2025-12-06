@@ -56,7 +56,7 @@ app.get('/generate_plot', (req, res) => {
       console.warn(`stderr from Python script: ${stderr}`);
     }
 
-    const plotPath = path.join(__dirname, 'services/static', 'output.png');
+    const plotPath = path.join(__dirname, 'static', 'output.png');
 
     if (fs.existsSync(plotPath)) {
       res.sendFile(plotPath);  // Send the generated plot

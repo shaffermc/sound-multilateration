@@ -65,7 +65,7 @@ for i, s in enumerate(omit_one_solutions):
 print("\nGlobal solution:")
 print(global_solution)
 
-def plot_hyperbolas(delays, solutions, global_solution, filename="tdoa_plot.png"):
+def plot_hyperbolas(delays, solutions, global_solution, filename="output.png"):
     S = stations_xy
     dd = {}
     for i in range(4):
