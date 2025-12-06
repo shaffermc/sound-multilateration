@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import warnings
+import math
 import matplotlib.image as mpimg  # Import this to read the image
 
 warnings.filterwarnings("ignore", message="No contour levels were found within the data range.")
@@ -17,6 +18,38 @@ v = 343                    # Speed of sound in m/s (you can change this if neede
 t_A = 0.58                 # Time for sound to reach point A (in seconds)
 t_B = 2.35                 # Time for sound to reach point B (in seconds)
 t_C = 1.52                 # Time for sound to reach point C (in seconds)
+
+station1coords = (40.748817, -73.985428)
+station2coords = (40.749817, -73.986428)
+station3coords = (40.748317, -73.984428)
+station4coords = (40.749317, -73.985928)
+
+def latlon_to_meters(lat1, lon1, lat2, lon2):
+    """
+    Convert two GPS points (lat/lon) to distance in meters assuming flat Earth.
+    """
+    # Approximate meters per degree
+    meters_per_deg_lat = 111_320
+    meters_per_deg_lon = 111_320 * math.cos(math.radians((lat1 + lat2) / 2))
+
+    dx = (lon2 - lon1) * meters_per_deg_lon
+    dy = (lat2 - lat1) * meters_per_deg_lat
+
+    distance = math.sqrt(dx**2 + dy**2)
+    return round(distance,2)
+
+def distances_between_four_points_flat(station1coords, station2coords, station3coords, station4coords):
+    """
+    Compute all 6 pairwise distances between four points assuming flat Earth.
+    """
+    d12 = latlon_to_meters(*station1coords, *station2coords)
+    d13 = latlon_to_meters(*station1coords, *station3coords)
+    d14 = latlon_to_meters(*station1coords, *station4coords)
+    d23 = latlon_to_meters(*station2coords, *station3coords)
+    d24 = latlon_to_meters(*station2coords, *station4coords)
+    d34 = latlon_to_meters(*station3coords, *station4coords)
+    
+    return d12, d13, d14, d23, d24, d34
 
 # --- Calculation Function ---
 def calculate_hyperbolas(t_A, t_B, t_C):
@@ -48,6 +81,10 @@ def calculate_hyperbolas(t_A, t_B, t_C):
 
 # --- Generate the Plot ---
 def generate_plot(t_A, t_B, t_C):
+
+    distances = distances_between_four_points_flat(station1coords, station2coords, station3coords, station4coords)
+    print(distances)
+
     X, Y, hyperbola_AB, hyperbola_AC, hyperbola_BC = calculate_hyperbolas(t_A, t_B, t_C)
 
     # Set the desired width and height in inches for the plot
