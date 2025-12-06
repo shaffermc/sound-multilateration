@@ -32,7 +32,7 @@ app.get('/generate_plot', (req, res) => {
   const { t_A, t_B, t_C } = req.query;
 
   // Run the Python script to generate the plot image
-  exec(`python3 generate_plot.py ${t_A} ${t_B} ${t_C}`, (error, stdout, stderr) => {
+  exec(`python3 services/generate_plot.py ${t_A} ${t_B} ${t_C}`, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return res.status(500).send('Error generating plot');
