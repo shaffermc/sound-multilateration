@@ -44,7 +44,7 @@ app.get('/generate_plot', (req, res) => {
   }
 
   // Build the Python command including the timestamp
-  const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD} ${timestamp}`;
+  const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
 
   // Run the Python script
   exec(pythonCmd, (error, stdout, stderr) => {
