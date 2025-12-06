@@ -1,76 +1,104 @@
 import { useState } from 'react';
 
 function SoundOriginLocator() {
-  // State variables for the plot URL and the time variables
-  const [imageUrl, setImageUrl] = useState('');
-  const [tA, setTA] = useState(0.5);      // Time for sound to reach sensor A
-  const [tB, setTB] = useState(2.35);   // Time for sound to reach sensor B
-  const [tC, setTC] = useState(1.5);    // Time for sound to reach sensor C
-  
-  // Constants
-  const speedOfSound = 343; // meters per second (speed of sound in air)
+  // ---------------------------
+  // Default values (hard-coded)
+  // ---------------------------
+  const defaultCoords = [
+    { lat: 37.421998, lon: -122.084 },  // Station A
+    { lat: 37.422500, lon: -122.084 },  // Station B
+    { lat: 37.422500, lon: -122.083 },  // Station C
+    { lat: 37.421998, lon: -122.083 },  // Station D
+  ];
 
-  // Function to fetch the plot based on the current time values
+  const defaultTimes = [0.5, 0.7, 1.2, 1.3]; // tA, tB, tC, tD in seconds
+
+  // ---------------------------
+  // State
+  // ---------------------------
+  const [stations, setStations] = useState(defaultCoords);
+  const [times, setTimes] = useState(defaultTimes);
+  const [imageUrl, setImageUrl] = useState('');
+
+  // ---------------------------
+  // Handlers
+  // ---------------------------
+  const handleCoordChange = (index, axis, value) => {
+    const updated = [...stations];
+    updated[index][axis] = parseFloat(value);
+    setStations(updated);
+  };
+
+  const handleTimeChange = (index, value) => {
+    const updated = [...times];
+    updated[index] = parseFloat(value);
+    setTimes(updated);
+  };
+
   const fetchPlot = async () => {
-    const timestamp = new Date().getTime();  // Get the current timestamp to prevent caching
-    const response = await fetch(`http://209.46.124.94:3000/generate_plot?t_A=${tA}&t_B=${tB}&t_C=${tC}&timestamp=${timestamp}`);
-    if (response.ok) {
-      const plotUrl = `http://209.46.124.94:3000/static/plot.png?${timestamp}`;  // Append timestamp to the image URL
-      setImageUrl(plotUrl);
-    } else {
-      console.error('Error fetching plot');
+    const timestamp = new Date().getTime(); // prevent caching
+    const query = [
+      `lat1=${stations[0].lat}`, `lon1=${stations[0].lon}`,
+      `lat2=${stations[1].lat}`, `lon2=${stations[1].lon}`,
+      `lat3=${stations[2].lat}`, `lon3=${stations[2].lon}`,
+      `lat4=${stations[3].lat}`, `lon4=${stations[3].lon}`,
+      `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`,
+      `timestamp=${timestamp}`
+    ].join('&');
+
+    try {
+      const response = await fetch(`http://209.46.124.94:3000/generate_plot?${query}`);
+      if (!response.ok) throw new Error('Plot generation failed');
+      setImageUrl(`http://209.46.124.94:3000/static/tdoa_plot.png?${timestamp}`);
+    } catch (err) {
+      console.error(err);
+      alert('Error generating plot');
     }
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      {/* Controls and Time Info */}
-      <div style={{ marginBottom: '20px' }}>
-        <div>
-          <div>
-            <strong>AB:</strong>
-            <input 
-              type="number" 
-              value={tA.toFixed(2)} 
-              onChange={(e) => setTA(parseFloat(e.target.value))} 
-              step="0.01"
-              style={{ width: '80px', fontSize: '14px', padding: '5px', marginRight: '10px' }}
-            />
-            seconds
+    <div style={{ width: '100%', padding: '10px' }}>
+      <h2>Sound Origin Locator</h2>
+
+      {/* GPS Input Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
+        {stations.map((station, i) => (
+          <div key={i} style={{ border: '1px solid #ccc', padding: '10px' }}>
+            <strong>Station {String.fromCharCode(65 + i)}</strong>
+            <div>
+              Lat: <input type="number" step="0.000001" value={station.lat} 
+                         onChange={(e) => handleCoordChange(i, 'lat', e.target.value)} />
+            </div>
+            <div>
+              Lon: <input type="number" step="0.000001" value={station.lon} 
+                         onChange={(e) => handleCoordChange(i, 'lon', e.target.value)} />
+            </div>
           </div>
-          <div>
-            <strong>BC:</strong>
-            <input 
-              type="number" 
-              value={tB.toFixed(2)} 
-              onChange={(e) => setTB(parseFloat(e.target.value))} 
-              step="0.01"
-              style={{ width: '80px', fontSize: '14px', padding: '5px', marginRight: '10px' }}
-            />
-            seconds
-          </div>
-          <div>
-            <strong>AC:</strong>
-            <input 
-              type="number" 
-              value={tC.toFixed(2)} 
-              onChange={(e) => setTC(parseFloat(e.target.value))} 
-              step="0.01"
-              style={{ width: '80px', fontSize: '14px', padding: '5px', marginRight: '10px' }}
-            />
-            seconds
-          </div>
-          
-          <button onClick={fetchPlot} style={{ fontSize: '14px', padding: '8px 15px', marginTop: '10px' }}>Refresh Plot</button>
-        </div>
+        ))}
       </div>
 
-      {/* Image at the bottom, full width */}
+      {/* Time Delays */}
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+        {times.map((t, i) => (
+          <div key={i}>
+            <strong>t{String.fromCharCode(65 + i)}:</strong>
+            <input type="number" step="0.01" value={t} 
+                   onChange={(e) => handleTimeChange(i, e.target.value)} />
+            s
+          </div>
+        ))}
+      </div>
+
+      <button onClick={fetchPlot} style={{ fontSize: '16px', padding: '10px 20px', marginBottom: '20px' }}>
+        Generate Plot
+      </button>
+
+      {/* Display Plot */}
       <div>
         {imageUrl ? (
-          <img src={imageUrl} alt="Generated Plot" style={{ width: '100%', height: 'auto' }} />
+          <img src={imageUrl} alt="TDOA Plot" style={{ width: '100%', height: 'auto', border: '1px solid #ccc' }} />
         ) : (
-          <p>Loading plot...</p>
+          <p>No plot yet. Enter coordinates and times, then click "Generate Plot".</p>
         )}
       </div>
     </div>
