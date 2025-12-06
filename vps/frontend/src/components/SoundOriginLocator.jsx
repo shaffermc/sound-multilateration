@@ -42,14 +42,13 @@ function SoundOriginLocator() {
       `lat2=${stations[1].lat}`, `lon2=${stations[1].lon}`,
       `lat3=${stations[2].lat}`, `lon3=${stations[2].lon}`,
       `lat4=${stations[3].lat}`, `lon4=${stations[3].lon}`,
-      `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`,
-      `timestamp=${timestamp}`
+      `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`
     ].join('&');
     console.log("Generated URL:", query);
     try {
       const response = await fetch(`http://209.46.124.94:3000/generate_plot?${query}`);
       if (!response.ok) throw new Error('Plot generation failed');
-      setImageUrl(`http://209.46.124.94:3000/static/tdoa_plot.png?${timestamp}`);
+      setImageUrl(`http://209.46.124.94:3000/static/output.png`);
     } catch (err) {
       console.error(err);
       alert('Error generating plot');

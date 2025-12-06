@@ -39,7 +39,7 @@ app.get('/generate_plot', (req, res) => {
   } = req.query;
 
   // Validate that all required query parameters exist, including timestamp
-  if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD, timestamp].every(Boolean)) {
+  if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD].every(Boolean)) {
     return res.status(400).send('Missing required query parameters');
   }
 
@@ -57,7 +57,7 @@ app.get('/generate_plot', (req, res) => {
       return res.status(500).send('Error generating plot');
     }
 
-    const plotPath = path.join(__dirname, 'static', 'tdoa_plot.png');
+    const plotPath = path.join(__dirname, 'static', 'output.png');
 
     if (fs.existsSync(plotPath)) {
       res.sendFile(plotPath);  // Send the generated plot
