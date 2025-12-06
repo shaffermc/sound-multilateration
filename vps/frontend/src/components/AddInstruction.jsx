@@ -72,7 +72,7 @@ const AddInstruction = () => {
 
   return (
     <div>
-      <h2>Add a New Instruction</h2>
+      <h3>Advanced Options - Send Commands to Individual Stations</h3>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Instruction Type:</label>

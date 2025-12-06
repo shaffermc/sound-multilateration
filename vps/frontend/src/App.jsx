@@ -6,6 +6,7 @@ import InstructionsList from './components/InstructionsList';
 import AudioFileList from './components/AudioFileList'; 
 import SoundOriginLocator from './components/SoundOriginLocator';
 import BandwidthDisplay from './components/BandwidthDisplay';  
+import RetrieveAudio from './components/RetrieveAudio';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -13,10 +14,20 @@ function App() {
   return (
     <>
       <div>
-        <AddInstruction />
+        <RetrieveAudio />
       </div>
       <div>
         <InstructionsList /> 
+      </div>
+      <div>
+        <AddInstruction />
+      </div>
+          {/*
+      <div>
+        <StationStatusTable />
+      </div>
+      <div>
+        <BandwidthDisplay />
       </div>
       <div>
         <AudioFileList />
@@ -24,6 +35,7 @@ function App() {
       <div>
         <SoundOriginLocator /> 
       </div>
+      */}
     </>
   );
 }
