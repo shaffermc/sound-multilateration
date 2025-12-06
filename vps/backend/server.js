@@ -54,7 +54,6 @@ app.get('/generate_plot', (req, res) => {
     }
     if (stderr) {
       console.warn(`stderr from Python script: ${stderr}`);
-      return res.status(500).send('Error generating plot');
     }
 
     const plotPath = path.join(__dirname, 'static', 'output.png');
