@@ -44,6 +44,8 @@ const RetrieveAudio = () => {
       const response = await axios.post('http://209.46.124.94:3000/instructions/add_instructions', newInstruction);
       setMessage('Request submitted. Audio processing. ');
       setInstructionValue(null); // Reset to null
+      //window.location.reload();
+
     } catch (error) {
       setMessage('Error adding instruction. Please try again.');
       console.error(error);

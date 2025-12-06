@@ -24,10 +24,32 @@ const InstructionList = () => {
     }
   };
 
-  // Call fetchInstructions when the component mounts
   useEffect(() => {
-    fetchInstructions();
-  }, []);
+    fetchInstructions(); // initial load
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(
+          "http://209.46.124.94:3000/instructions/get_instructions"
+        );
+        const data = await response.json();
+        const newest = data.slice(-10);
+
+        // Only update if data changed
+        setInstructions(prev => {
+          return JSON.stringify(prev) !== JSON.stringify(newest)
+            ? newest
+            : prev;
+        });
+
+      } catch (err) {
+        console.error("Background update failed", err);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []); 
+
 
   const handleDelete = async (id) => {
     try {
@@ -38,7 +60,7 @@ const InstructionList = () => {
         throw new Error('Failed to delete instruction');
       }
       // After successful deletion, refetch instructions
-      fetchInstructions();
+      //fetchInstructions();
     } catch (error) {
       console.error('Error deleting instruction:', error);
     }
