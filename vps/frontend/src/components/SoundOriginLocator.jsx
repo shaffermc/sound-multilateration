@@ -95,7 +95,7 @@ function SoundOriginLocator() {
       {/* Display Plot */}
       <div>
         {imageUrl ? (
-          <img src={imageUrl} alt="TDOA Plot" style={{ width: "100%", border: "1px solid #ccc" }} />
+          <img src={imageUrl} alt="TDOA Plot" style={{ width: "50%", border: "1px solid #ccc" }} />
         ) : (
           <p>No plot yet. Enter coordinates and times, then click "Generate Plot".</p>
         )}
