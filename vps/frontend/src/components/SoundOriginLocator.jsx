@@ -1,28 +1,19 @@
 import { useState } from 'react';
 
 function SoundOriginLocator() {
-  // ---------------------------
-  // Default values (hard-coded)
-  // ---------------------------
   const defaultCoords = [
-    { lat: 40.75, lon: -73.99 },       // Station A
-    { lat: 40.75, lon: -73.9549 },     // Station B
-    { lat: 40.77695, lon: -73.9549 },  // Station C
-    { lat: 40.77695, lon: -73.9900 },  // Station D
+    { lat: 40.75, lon: -73.99 },
+    { lat: 40.75, lon: -73.9549 },
+    { lat: 40.77695, lon: -73.9549 },
+    { lat: 40.77695, lon: -73.9900 },
   ];
 
-  const defaultTimes = [0.1, 0.2, 0.3, 0.25]; // tA, tB, tC, tD in seconds
+  const defaultTimes = [0.1, 0.2, 0.3, 0.25];
 
-  // ---------------------------
-  // State
-  // ---------------------------
   const [stations, setStations] = useState(defaultCoords);
   const [times, setTimes] = useState(defaultTimes);
   const [imageUrl, setImageUrl] = useState('');
 
-  // ---------------------------
-  // Handlers
-  // ---------------------------
   const handleCoordChange = (index, axis, value) => {
     const updated = [...stations];
     updated[index][axis] = parseFloat(value);
@@ -51,51 +42,90 @@ function SoundOriginLocator() {
       setImageUrl(`data:image/png;base64,${data.image}`);
     } catch (err) {
       console.error(err);
-      alert('Error generating plot. Check console for details.');
+      alert('Error generating plot.');
     }
   };
 
   return (
-    <div style={{ width: '100%', padding: '10px' }}>
-      <h2>Sound Origin Locator</h2>
+    <div style={{ width: "100%", height: "100%", display: "flex" }}>
+      {/* LEFT SIDE — Controls */}
+      <div style={{ width: "35%", padding: "20px", overflowY: "auto" }}>
+        <h3>Station Locations</h3>
 
-      {/* GPS Input Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
-        {stations.map((station, i) => (
-          <div key={i} style={{ border: '1px solid #ccc', padding: '10px' }}>
-            <strong>Station {String.fromCharCode(65 + i)}</strong>
-            <div>
-              Lat: <input type="number" step="0.000001" value={station.lat} 
-                         onChange={(e) => handleCoordChange(i, 'lat', e.target.value)} />
+        {/* GPS Input Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '10px',
+          marginBottom: '20px'
+        }}>
+          {stations.map((station, i) => (
+            <div key={i} style={{ border: '1px solid #ccc', padding: '10px' }}>
+              <strong>Station {String.fromCharCode(65 + i)}</strong>
+              <div>
+                Lat:
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={station.lat}
+                  onChange={(e) => handleCoordChange(i, 'lat', e.target.value)}
+                  style={{ width: "80px" }}
+                />
+              </div>
+              <div>
+                Lon:
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={station.lon}
+                  onChange={(e) => handleCoordChange(i, 'lon', e.target.value)}
+                  style={{ width: "80px" }}
+                />
+              </div>
             </div>
-            <div>
-              Lon: <input type="number" step="0.000001" value={station.lon} 
-                         onChange={(e) => handleCoordChange(i, 'lon', e.target.value)} />
+          ))}
+        </div>
+
+        {/* Time Delays */}
+
+        <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+          <h3>Time Delays</h3>
+
+          {times.map((t, i) => (
+            <div key={i}>
+              <strong>t{String.fromCharCode(65 + i)}:</strong>
+              <input
+                type="number"
+                step="0.01"
+                value={t}
+                onChange={(e) => handleTimeChange(i, e.target.value)}
+                style={{ width: "80px" }}
+              />
+              s
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <button
+          onClick={fetchPlot}
+          style={{ fontSize: '16px', padding: '10px 20px' }}
+        >
+          Generate Plot
+        </button>
       </div>
 
-      {/* Time Delays */}
-      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-        {times.map((t, i) => (
-          <div key={i}>
-            <strong>t{String.fromCharCode(65 + i)}:</strong>
-            <input type="number" step="0.01" value={t} 
-                   onChange={(e) => handleTimeChange(i, e.target.value)} />
-            s
-          </div>
-        ))}
-      </div>
-
-      <button onClick={fetchPlot} style={{ fontSize: '16px', padding: '10px 20px', marginBottom: '20px' }}>
-        Generate Plot
-      </button>
-
-      {/* Display Plot */}
-      <div>
+      {/* RIGHT SIDE — Plot */}
+      <div style={{
+        width: "65%",
+        padding: "20px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        borderLeft: "2px solid #eee",
+        background: "#fafafa"
+      }}>
         {imageUrl ? (
-          <img src={imageUrl} alt="TDOA Plot" style={{ width: "50%", border: "1px solid #ccc" }} />
+          <img src={imageUrl} alt="TDOA Plot" style={{ width: "100%", maxWidth: "800px", border: "1px solid #ccc" }} />
         ) : (
           <p>No plot yet. Enter coordinates and times, then click "Generate Plot".</p>
         )}

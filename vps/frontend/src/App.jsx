@@ -17,15 +17,15 @@ function App() {
         <RetrieveAudio />
       </div>
       <div>
+        <SoundOriginLocator /> 
+      </div>
+      <div>
         <InstructionsList /> 
       </div>
       <div>
         <AudioFileList />
       </div>
-      <div>
-        <SoundOriginLocator /> 
-      </div>
-      {/*
+       {/*
        <div>
       <AddInstruction />
       </div>
@@ -35,7 +35,7 @@ function App() {
       <div>
         <BandwidthDisplay />
       </div>
-
+     
       */}
     </>
   );
