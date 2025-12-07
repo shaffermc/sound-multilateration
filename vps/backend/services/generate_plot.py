@@ -9,8 +9,8 @@ import json
 
 v = 343.0  # speed of sound m/s
 
-GRID_CENTER_X = 2500
-GRID_CENTER_Y = 2500
+GRID_CENTER_X = 1500
+GRID_CENTER_Y = 1500
 
 def gps_to_xy(lat_ref, lon_ref, lat, lon):
     meters_per_deg_lat = 111320
