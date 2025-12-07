@@ -9,8 +9,8 @@ import json
 
 v = 343.0  # speed of sound m/s
 
-GRID_CENTER_X = 2000
-GRID_CENTER_Y = 2000
+GRID_CENTER_X = 0
+GRID_CENTER_Y = 0
 
 def gps_to_xy(lat_ref, lon_ref, lat, lon):
     meters_per_deg_lat = 111320
@@ -72,7 +72,7 @@ def plot_hyperbolas(delays, solutions, global_solution):
         for j in range(i+1,4):
             dd[(i,j)] = v * (delays[i] - delays[j])
 
-    grid_size = 3000
+    grid_size = 250
     N = 800
     xs = np.linspace(GRID_CENTER_X - grid_size, GRID_CENTER_X + grid_size, N)
     ys = np.linspace(GRID_CENTER_Y - grid_size, GRID_CENTER_Y + grid_size, N)
