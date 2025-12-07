@@ -6,12 +6,12 @@ function SoundOriginLocator() {
   const localPresets = {
     "Test Area 1": {
       coords: [
-        { lat: 38.8372, lon: -77.3827},
-        { lat: 38.8369, lon: -77.3822 },
-        { lat: 38.8378, lon: -77.3822 },
-        { lat: 38.8380, lon: -77.3828 },
+        { lat: 38.836902, lon: -77.3827},
+        { lat: 38.836902, lon: -77.3822 },
+        { lat: 38.837799, lon: -77.3822 },
+        { lat: 38.837799, lon: -77.3827 },
       ],
-      times: [0.1, 0.2, 0.3, 0.25]
+      times: [0.09, 0.1, 0.18, 0.19]
     },
 
     "Test Area 2": {
@@ -163,7 +163,7 @@ function SoundOriginLocator() {
         background: "#fafafa"
       }}>
         {imageUrl ? (
-          <img src={imageUrl} alt="TDOA Plot" style={{ maxWidth: "500px", border: "1px solid #ccc" }} />
+          <img src={imageUrl} alt="TDOA Plot" style={{ maxHeight: "500px", maxWidth: "500px", border: "1px solid #ccc" }} />
         ) : (
           <p>No plot yet. Enter coordinates and times, then click "Generate Plot".</p>
         )}
