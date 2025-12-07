@@ -39,18 +39,18 @@ const AudioFileList = () => {
       {audioFiles.length === 0 ? (
         <p>No audio files found.</p>
       ) : (
-        <table style={{ width: '30%', borderCollapse: 'collapse', marginTop: '20px' }}>
+        <table border="1">
           <thead>
             <tr>
-              <th style={styles.tableHeader}>File Name</th>
-              <th style={styles.tableHeader}>Download</th>
+              <th >File Name</th>
+              <th >Download</th>
             </tr>
           </thead>
           <tbody>
             {audioFiles.map((file, index) => (
               <tr key={index}>
-                <td style={styles.tableData}>{file}</td>
-                <td style={styles.tableData}>
+                <td >{file}</td>
+                <td >
                   <a href={`http://209.46.124.94:3000/audio/${file}`} download>
                     Download
                   </a>
@@ -62,21 +62,6 @@ const AudioFileList = () => {
       )}
     </div>
   );
-};
-
-// CSS styles for the table
-const styles = {
-  tableHeader: {
-    border: '2px solid #000',
-    padding: '8px',
-    textAlign: 'left',
-    backgroundColor: '#f2f2f2',
-  },
-  tableData: {
-    border: '2px solid #000',
-    padding: '8px',
-    textAlign: 'left',
-  },
 };
 
 export default AudioFileList;

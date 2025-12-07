@@ -47,9 +47,9 @@ function SoundOriginLocator() {
   };
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex" }}>
+    <div style={{  display: "flex" }}>
       {/* LEFT SIDE — Controls */}
-      <div style={{ width: "35%", padding: "20px", overflowY: "auto" }}>
+      <div style={{ padding: "20px", overflowY: "auto" }}>
         <h3>Station Locations</h3>
 
         {/* GPS Input Grid */}
@@ -116,7 +116,6 @@ function SoundOriginLocator() {
 
       {/* RIGHT SIDE — Plot */}
       <div style={{
-        width: "65%",
         padding: "20px",
         display: "flex",
         justifyContent: "center",
@@ -125,7 +124,7 @@ function SoundOriginLocator() {
         background: "#fafafa"
       }}>
         {imageUrl ? (
-          <img src={imageUrl} alt="TDOA Plot" style={{ width: "100%", maxWidth: "800px", border: "1px solid #ccc" }} />
+          <img src={imageUrl} alt="TDOA Plot" style={{ maxWidth: "500px", border: "1px solid #ccc" }} />
         ) : (
           <p>No plot yet. Enter coordinates and times, then click "Generate Plot".</p>
         )}

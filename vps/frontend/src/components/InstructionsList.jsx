@@ -76,32 +76,32 @@ const InstructionList = () => {
 
   return (
     <div>
-      <table  style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+      <table border="1">
         <thead>
           <tr>
-            <th style={styles.tableHeader}>Instruction Type</th>
-            <th style={styles.tableHeader}>Instruction Target</th>
-            <th style={styles.tableHeader}>Instruction Value</th>
-            <th style={styles.tableHeader}>Station 1 Complete</th>
-            <th style={styles.tableHeader}>Station 2 Complete</th>
-            <th style={styles.tableHeader}>Station 3 Complete</th>
-            <th style={styles.tableHeader}>Station 4 Complete</th>
-            <th style={styles.tableHeader}>All Complete</th> {/* Display All Complete */}
-            <th style={styles.tableHeader}>Actions</th>
+            <th>Instruction Type</th>
+            <th>Instruction Target</th>
+            <th>Instruction Value</th>
+            <th>Station 1 Complete</th>
+            <th>Station 2 Complete</th>
+            <th>Station 3 Complete</th>
+            <th>Station 4 Complete</th>
+            <th>All Complete</th> {/* Display All Complete */}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {instructions.map((instruction) => (
             <tr key={instruction._id}>
-              <td style={styles.tableData}>{instruction.instruction_type}</td>
-              <td style={styles.tableData}>{instruction.instruction_target}</td>
-              <td style={styles.tableData}>{instruction.instruction_value}</td>
-              <td style={styles.tableData}>{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={styles.tableData}>{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={styles.tableData}>{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={styles.tableData}>{instruction.station4_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={styles.tableData}>{instruction.all_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' for All Complete */}
-              <td style={styles.tableData}>
+              <td >{instruction.instruction_type}</td>
+              <td >{instruction.instruction_target}</td>
+              <td >{instruction.instruction_value}</td>
+              <td >{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td >{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td >{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td >{instruction.station4_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td >{instruction.all_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' for All Complete */}
+              <td >
                 <button onClick={() => handleDelete(instruction._id)}>Delete</button>
               </td>
             </tr>
@@ -110,21 +110,6 @@ const InstructionList = () => {
       </table>
     </div>
   );
-};
-
-// CSS styles for the table
-const styles = {
-  tableHeader: {
-    border: '2px solid #000',
-    padding: '8px',
-    textAlign: 'left',
-    backgroundColor: '#f2f2f2',
-  },
-  tableData: {
-    border: '2px solid #000',
-    padding: '8px',
-    textAlign: 'left',
-  },
 };
 
 export default InstructionList;

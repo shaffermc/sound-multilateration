@@ -54,7 +54,7 @@ const RetrieveAudio = () => {
 
   return (
     <div>
-      <h2  style={{ textAlign: 'center' }}>Sound Source Locator</h2>
+      <h2  style={{ textAlign: 'left' }}>Sound Source Locator</h2>
       Please select the date and time of sound:
       <form onSubmit={handleSubmit}>
         <div>
