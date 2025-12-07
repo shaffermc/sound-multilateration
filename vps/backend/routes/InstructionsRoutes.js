@@ -1,15 +1,24 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const Instructions = require('../models/InstructionsModels'); // Path to the Instructions model
 
 const router = express.Router();
 
-// Route to create a new instruction
+// ----------------------------
+// Create a new instruction
+// ----------------------------
 router.post('/add_instructions', async (req, res) => {
   try {
-    const { instruction_type, instruction_target, instruction_value, station1_complete, station2_complete, station3_complete, station4_complete, all_complete } = req.body;
+    const {
+      instruction_type,
+      instruction_target,
+      instruction_value,
+      station1_complete,
+      station2_complete,
+      station3_complete,
+      station4_complete,
+      all_complete
+    } = req.body;
 
-    // Create a new instruction document
     const newInstruction = new Instructions({
       instruction_type,
       instruction_target,
@@ -18,10 +27,9 @@ router.post('/add_instructions', async (req, res) => {
       station2_complete: station2_complete || false,
       station3_complete: station3_complete || false,
       station4_complete: station4_complete || false,
-      all_complete: all_complete || false,
+      all_complete: all_complete || false
     });
 
-    // Save the new instruction to the database
     await newInstruction.save();
     res.status(201).json({ message: 'Instruction added successfully', instruction: newInstruction });
   } catch (error) {
@@ -30,17 +38,30 @@ router.post('/add_instructions', async (req, res) => {
   }
 });
 
-// Route to modify an instruction by its ID
+// ----------------------------
+// Update an instruction by ID
+// ----------------------------
 router.put('/update_instructions/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Update the instruction by ID
-    const updatedInstruction = await Instructions.findByIdAndUpdate(id, updateData, { new: true });
+    // Update the instruction
+    let updatedInstruction = await Instructions.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedInstruction) {
       return res.status(404).json({ message: 'Instruction not found' });
+    }
+
+    // Automatically mark all_complete if all stations are done
+    if (
+      updatedInstruction.station1_complete &&
+      updatedInstruction.station2_complete &&
+      updatedInstruction.station3_complete &&
+      updatedInstruction.station4_complete
+    ) {
+      updatedInstruction.all_complete = true;
+      await updatedInstruction.save();
     }
 
     res.status(200).json({ message: 'Instruction updated successfully', instruction: updatedInstruction });
@@ -50,12 +71,13 @@ router.put('/update_instructions/:id', async (req, res) => {
   }
 });
 
-// Route to delete an instruction by its ID
+// ----------------------------
+// Delete an instruction by ID
+// ----------------------------
 router.delete('/delete_instructions/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Delete the instruction by ID
     const deletedInstruction = await Instructions.findByIdAndDelete(id);
 
     if (!deletedInstruction) {
@@ -69,7 +91,9 @@ router.delete('/delete_instructions/:id', async (req, res) => {
   }
 });
 
-// Route to get all instructions (optional, for listing purposes)
+// ----------------------------
+// Get all instructions
+// ----------------------------
 router.get('/get_instructions', async (req, res) => {
   try {
     const instructions = await Instructions.find();
@@ -80,7 +104,9 @@ router.get('/get_instructions', async (req, res) => {
   }
 });
 
-// Route to get a specific instruction by ID (optional, for viewing specific instructions)
+// ----------------------------
+// Get a single instruction by ID
+// ----------------------------
 router.get('/get_instructions/:id', async (req, res) => {
   try {
     const { id } = req.params;

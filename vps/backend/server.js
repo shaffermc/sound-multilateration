@@ -71,9 +71,6 @@ app.get('/generate_plot', (req, res) => {
   });
 });
 
-
-
-
 const audioDirectory = '/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files'; 
 app.use('/audio', express.static(audioDirectory));
 
@@ -90,7 +87,6 @@ app.get('/audio-files', (req, res) => {
     res.json(audioFiles);
   });
 });
-
 
 const stationStatusRoutes = require('./routes/StationStatusRoutes');
 app.use('/stationStatus', stationStatusRoutes);
