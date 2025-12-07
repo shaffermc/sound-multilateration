@@ -3,12 +3,12 @@ import time
 import subprocess
 from datetime import datetime, timedelta
 
-config_path = '/home/station/config.json'   
+config_path = '/home/bob325/config.json'   
 
 with open(config_path, 'r') as f:
     config = json.load(f)
 
-base_directory = config.get('base_directory', '/home/station/recordings/')
+base_directory = config.get('base_directory')
 
 def rec(start_time):
     try:

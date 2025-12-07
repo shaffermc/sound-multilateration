@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 # Load config file
-config_path = '/home/station/config.json'   
+config_path = '/home/bob325/config.json'   
 
 with open(config_path, 'r') as f:
     config = json.load(f)

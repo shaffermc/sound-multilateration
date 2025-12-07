@@ -6,7 +6,7 @@ import time
 import os
 
 # Load config file
-config_path = '/home/station/config.json'   
+config_path = '/home/bob325/config.json'   
 
 with open(config_path, 'r') as f:
     config = json.load(f)
@@ -14,7 +14,7 @@ with open(config_path, 'r') as f:
 # Load values from config
 stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
 base_directory = config.get('base_directory')
-station_status_endpoint = config.get('station_status_endpoint')
+station_status_url = config.get('station_status_url')
 
 # Function to get the uptime in a human-readable format (in minutes, rounded)
 def get_uptime():
@@ -85,7 +85,7 @@ def main():
 
         # Prepare the data to send (convert all values to strings)
         data = {
-            'station_location': stationID,  # Ensure location is a string
+            'station_location': str(stationID),  # Ensure location is a string
             'station_uptime': str(uptime),  # Convert uptime to string
             'station_free_space': str(free_disk_space),  # Convert free_disk_space to string (MB)
             'station_file_count': str(file_count), # How many files in record dir
@@ -97,7 +97,7 @@ def main():
         print(f"Data being sent: {data}")
         
         # Upload the data
-        upload_data(endpoint_url, data)
+        upload_data(station_status_url, data)
 
         # Wait for 10 minutes (600 seconds) before running again
         time.sleep(600)
