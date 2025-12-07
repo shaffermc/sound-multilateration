@@ -72,11 +72,40 @@ def plot_hyperbolas(delays, solutions, global_solution):
         for j in range(i+1,4):
             dd[(i,j)] = v * (delays[i] - delays[j])
 
-    grid_size = 3000
+    # Collect all relevant points (stations + solutions)
+    all_x = [s[0] for s in S] + [sol[0] for sol in solutions] + [global_solution[0]]
+    all_y = [s[1] for s in S] + [sol[1] for sol in solutions] + [global_solution[1]]
+
+    # Compute bounding box
+    min_x, max_x = min(all_x), max(all_x)
+    min_y, max_y = min(all_y), max(all_y)
+
+    # Padding factor (adjustable)
+    PAD = 0.25  # 25% padding
+
+    # Expand bounds
+    dx = max_x - min_x
+    dy = max_y - min_y
+    pad_x = dx * PAD
+    pad_y = dy * PAD
+
+    xmin = min_x - pad_x
+    xmax = max_x + pad_x
+    ymin = min_y - pad_y
+    ymax = max_y + pad_y
+
+    # If everything is zero (stations extremely close), set a fallback size
+    if dx < 50:  # 50 meters
+        xmin, xmax = min_x - 100, max_x + 100
+    if dy < 50:
+        ymin, ymax = min_y - 100, max_y + 100
+
+    # Generate grid using dynamic bounds
     N = 800
-    xs = np.linspace(GRID_CENTER_X - grid_size, GRID_CENTER_X + grid_size, N)
-    ys = np.linspace(GRID_CENTER_Y - grid_size, GRID_CENTER_Y + grid_size, N)
+    xs = np.linspace(xmin, xmax, N)
+    ys = np.linspace(ymin, ymax, N)
     X, Y = np.meshgrid(xs, ys)
+
 
     fig, ax = plt.subplots(figsize=(9,9))
     colors = ['red','blue','green','orange','purple','brown']
