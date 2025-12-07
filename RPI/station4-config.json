@@ -8,5 +8,5 @@
     "bandwidth_api_url": "http://209.46.124.94:3000/bandwidth/upload",
     "station_status_url": "http://209.46.124.94:3000/stationStatus/add_station_status",
     "instructions_url": "http://209.46.124.94:3000/instructions/get_instructions",
-    "audio_upload_directory": "/home/mshaffer/www/vps/backend/services/audio_files/"
+    "audio_upload_directory": "/home/mshaffer/www/sound-multilateration/backend/services/audio_files/"
 }

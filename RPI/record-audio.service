@@ -5,12 +5,12 @@ Wants=dev-snd-usb\x2dDevice.device
 
 [Service]
 ExecStartPre=/bin/bash -c 'until aplay -l | grep -q "card 1"; do sleep 1; done'
-ExecStart=/usr/bin/python3 /home/station/record-audio.py
-WorkingDirectory=/home/station/
+ExecStart=/usr/bin/python3 /home/bob325/record-audio.py
+WorkingDirectory=/home/bob325/
 Restart=always
 RestartSec=30
-User=station
-Group=station
+User=bob325
+Group=bob325
 Environment=PYTHONUNBUFFERED=1
 
 [Install]
