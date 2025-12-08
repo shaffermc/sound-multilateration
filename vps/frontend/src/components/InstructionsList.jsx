@@ -96,11 +96,11 @@ const InstructionList = () => {
               <td >{instruction.instruction_type}</td>
               <td >{instruction.instruction_target}</td>
               <td >{instruction.instruction_value}</td>
-              <td >{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td >{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td >{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td >{instruction.station4_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
-              <td >{instruction.all_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' for All Complete */}
+              <td style={{ backgroundColor: instruction.station1_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td style={{ backgroundColor: instruction.station2_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td style={{ backgroundColor: instruction.station3_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td style={{ backgroundColor: instruction.station4_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station4_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
+              <td style={{ backgroundColor: instruction.all_complete ? '#b6ffb6' : 'transparent' }}>{instruction.all_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' for All Complete */}
               <td >
                 <button onClick={() => handleDelete(instruction._id)}>Delete</button>
               </td>
