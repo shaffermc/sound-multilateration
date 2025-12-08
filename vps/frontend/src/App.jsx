@@ -31,11 +31,9 @@ function App() {
       <div>
         <BandwidthDisplay />
       </div>
-       {/*
-       <div>
+      <div>
       <AddInstruction />
       </div>
-      */}
     </>
   );
 }
