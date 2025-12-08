@@ -2,12 +2,8 @@ const mongoose = require('mongoose');
 
 const BandwidthUsageSchema = new mongoose.Schema(
   {
-    device_id: {
-      type: String,  // Unique identifier for each device (e.g., MAC address or UUID)
-      required: true,
-    },
-    device_name: {
-      type: String,  // Name or type of the device (e.g., Raspberry Pi, Laptop, etc.)
+    station_id: {
+      type: String,  // Unique identifier for each station (e.g., MAC address or UUID)
       required: true,
     },
     date: {

@@ -22,6 +22,7 @@ const StationStatusTable = () => {
       try {
         const response = await fetch('http://209.46.124.94:3000/stationStatus/get_station_status');
         const data = await response.json();
+        console.log("API RESPONSE:", data); 
         setStationData(data);  // Expecting an array of location and status objects
         setLoading(false);
       } catch (err) {
@@ -59,13 +60,11 @@ const StationStatusTable = () => {
         <tbody>
           {stationData.map((item) => {
             const station = item.status;  // Extract the station data from the response
-
             // Convert the Unix timestamp to a readable date string
             const timestamp = new Date(station.timestamp);
             const formattedTimestamp = !isNaN(timestamp.getTime()) 
               ? timestamp.toLocaleString() 
               : 'Invalid Date';
-
             return (
               <tr key={station._id}>
                 {/* Display the formatted timestamp */}

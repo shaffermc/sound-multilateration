@@ -25,17 +25,16 @@ function App() {
       <div>
         <AudioFileList />
       </div>
-       {/*
-       <div>
-      <AddInstruction />
-      </div>
       <div>
         <StationStatusTable />
       </div>
       <div>
         <BandwidthDisplay />
       </div>
-     
+       {/*
+       <div>
+      <AddInstruction />
+      </div>
       */}
     </>
   );
