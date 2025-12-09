@@ -20,21 +20,15 @@ export default function App() {
 
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
-        
-        {/* You can reorder these however you like */}
+        <RetrieveAudio />
+        <div>
+        <CreatePlotJSON onResult={setResult} />
+        </div>
         <StationStatusTable />
         <AddInstruction />
-        <InstructionsList />
-        <AudioFileList />
         <BandwidthDisplay />
-        <RetrieveAudio />
-
-        {/* New TDOA JSON generator */}
-        <div style={{ marginTop: "20px" }}>
-          <h3>TDOA Plot Generator</h3>
-          <CreatePlotJSON onResult={setResult} />
-        </div>
-
+        <AudioFileList />
+        <InstructionsList />
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}

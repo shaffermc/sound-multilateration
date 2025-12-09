@@ -69,7 +69,7 @@ try:
 
     # Hyperbolas (low-resolution for speed)
     hyperbolas = []
-    num_points = 50  # was 800 → much faster
+    num_points = 200  # was 800 → much faster
     x_range = np.linspace(-500, 500, num_points)
     y_range = np.linspace(-500, 500, num_points)
 

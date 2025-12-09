@@ -3,25 +3,39 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet"
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Proper ES module Leaflet icon imports
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+// Custom circle icons
+const blackIcon = new L.DivIcon({
+  className: "custom-icon",
+  html: '<div style="width:12px; height:12px; background:blue; border-radius:50%; border:2px solid white;"></div>',
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+});
 
-// Fix Leaflet’s default icon path resolution for React
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow
+const redIcon = new L.DivIcon({
+  className: "custom-icon",
+  html: '<div style="width:12px; height:12px; background:red; border-radius:50%; border:2px solid white;"></div>',
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+});
+
+const yellowIcon = new L.DivIcon({
+  className: "custom-icon",
+  html: '<div style="width:14px; height:14px; background:yellow; border-radius:50%; border:2px solid black;"></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
 
 export default function TDOAMap({ result }) {
-  if (!result) return <p>No results yet.</p>;
+  // Default map center (if no result yet)
+  const defaultCenter = [38.836902, -77.3827]; // can be any coordinates
+  const mapCenter = result?.stations[0]
+    ? [result.stations[0].lat, result.stations[0].lon]
+    : defaultCenter;
 
-  const { stations, omit_solutions, global_solution, hyperbolas } = result;
-
-  const mapCenter = [stations[0].lat, stations[0].lon];
+  const stations = result?.stations || [];
+  const omit_solutions = result?.omit_solutions || [];
+  const global_solution = result?.global_solution || null;
+  const hyperbolas = result?.hyperbolas || [];
 
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
@@ -29,32 +43,34 @@ export default function TDOAMap({ result }) {
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
-      {/* Stations */}
+      {/* Stations (black) */}
       {stations.map((s, i) => (
-        <Marker key={i} position={[s.lat, s.lon]}>
+        <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
           <Popup>Station {i + 1}</Popup>
         </Marker>
       ))}
 
-      {/* Omit-one solutions */}
+      {/* Omit-one solutions (red) */}
       {omit_solutions.map((p, i) => (
-        <Marker key={`omit-${i}`} position={[p.lat, p.lon]}>
+        <Marker key={`omit-${i}`} position={[p.lat, p.lon]} icon={redIcon}>
           <Popup>Solution {i + 1}</Popup>
         </Marker>
       ))}
 
-      {/* Global solution */}
-      <Marker position={[global_solution.lat, global_solution.lon]}>
-        <Popup>Global Solution</Popup>
-      </Marker>
+      {/* Global solution (yellow) */}
+      {global_solution && (
+        <Marker position={[global_solution.lat, global_solution.lon]} icon={yellowIcon}>
+          <Popup>Global Solution</Popup>
+        </Marker>
+      )}
 
       {/* Hyperbola polylines */}
       {hyperbolas.map((h, idx) => (
         <Polyline
           key={idx}
           positions={h.points.map((pt) => [pt[0], pt[1]])}
-          color="yellow"
-          weight={2}
+          color="red"
+          weight={0}
         />
       ))}
     </MapContainer>
