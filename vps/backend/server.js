@@ -29,39 +29,35 @@ app.get('/', (req, res) => {
 });
 
 app.get('/solve_tdoa', (req, res) => {
-  const query = req.query;
+  const { lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD } = req.query;
 
-  // Build parameter order for Python
+  // Validate all required parameters
+  if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD].every(Boolean)) {
+    return res.status(400).json({ error: 'Missing required query parameters' });
+  }
+
   const pythonCmd = `python3 services/generate_plot.py \
-    ${query.lat1} ${query.lon1} \
-    ${query.lat2} ${query.lon2} \
-    ${query.lat3} ${query.lon3} \
-    ${query.lat4} ${query.lon4} \
-    ${query.tA} ${query.tB} ${query.tC} ${query.tD}`;
+${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
 
-  console.log("Running:", pythonCmd);
+  console.log('Running:', pythonCmd);
 
   exec(pythonCmd, (error, stdout, stderr) => {
-    console.log("---- PYTHON STDOUT ----");
-    console.log(stdout);
-    console.log("---- PYTHON STDERR ----");
-    console.log(stderr);
-
     if (error) {
-      return res.status(500).json({ error: "Python execution failed" });
+      console.error('Python execution failed:', stderr);
+      return res.status(500).json({ error: 'Python execution failed' });
     }
 
     const cleaned = stdout.trim();
-
     try {
       const json = JSON.parse(cleaned);
       res.json(json);
     } catch (err) {
-      console.error("JSON parse failed:", cleaned);
-      res.status(500).json({ error: "Invalid JSON from Python" });
+      console.error('JSON parse failed:', cleaned);
+      res.status(500).json({ error: 'Invalid JSON from Python' });
     }
   });
 });
+
 
 app.get('/generate_plot', (req, res) => {
   const {
