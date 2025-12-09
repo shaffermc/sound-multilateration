@@ -88,7 +88,7 @@ app.get("/generate_plot_json", (req, res) => {
 });
 
 // Routes
-app.use('/presets', presetsRouter);
+app.use('/presets', presetsRoutes);
 
 app.get('/generate_plot', (req, res) => {
   const {
