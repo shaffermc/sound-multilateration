@@ -20,7 +20,7 @@ function CreatePlotJSON({ onResult }) {
         { lat: 40.76, lon: -73.98 },
       ],
       times: [0.12, 0.22, 0.28, 0.31]
-    }
+    },
   };
 
   const [presetName, setPresetName] = useState("Test Area 1");

@@ -90,6 +90,17 @@ try:
                         lat, lon = xy_to_gps(lat_ref, lon_ref, x_scalar, y_scalar)
                         poly.append([lat, lon])
                     prev_val = H
+
+            # Determine if the hyperbola is horizontal or vertical based on the points
+            x_range_diff = max([p[0] for p in poly]) - min([p[0] for p in poly])
+            y_range_diff = max([p[1] for p in poly]) - min([p[1] for p in poly])
+
+            # Sort points based on orientation (horizontal = sort by X, vertical = sort by Y)
+            if x_range_diff > y_range_diff:
+                poly.sort(key=lambda p: p[0])  # Sort by longitude (X) for horizontal hyperbola
+            else:
+                poly.sort(key=lambda p: p[1])  # Sort by latitude (Y) for vertical hyperbola
+
             hyperbolas.append({"pair": [i, j], "points": poly})
 
     # Convert stations & solutions to GPS

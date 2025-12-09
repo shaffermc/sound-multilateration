@@ -26,9 +26,8 @@ const yellowIcon = new L.DivIcon({
 });
 
 export default function TDOAMap({ result }) {
-  // Default map center (if no result yet)
-  const defaultCenter = [38.836902, -77.3827]; // can be any coordinates
-  const mapCenter = result?.stations[0]
+  const defaultCenter = [38.836902, -77.3827];
+  const mapCenter = result?.stations?.[0]
     ? [result.stations[0].lat, result.stations[0].lon]
     : defaultCenter;
 
@@ -37,40 +36,43 @@ export default function TDOAMap({ result }) {
   const global_solution = result?.global_solution || null;
   const hyperbolas = result?.hyperbolas || [];
 
+  // 🎨 Colors for hyperbolas
+  const colors = ["red", "orange", "blue", "pink", "yellow", "green"];
+
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
       <TileLayer
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
-      {/* Stations (black) */}
+      {/* Stations */}
       {stations.map((s, i) => (
         <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
           <Popup>Station {i + 1}</Popup>
         </Marker>
       ))}
 
-      {/* Omit-one solutions (red) */}
+      {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (
         <Marker key={`omit-${i}`} position={[p.lat, p.lon]} icon={redIcon}>
           <Popup>Solution {i + 1}</Popup>
         </Marker>
       ))}
 
-      {/* Global solution (yellow) */}
+      {/* Global solution */}
       {global_solution && (
         <Marker position={[global_solution.lat, global_solution.lon]} icon={yellowIcon}>
           <Popup>Global Solution</Popup>
         </Marker>
       )}
 
-      {/* Hyperbola polylines */}
+      {/* Hyperbola polylines (each one a different color) */}
       {hyperbolas.map((h, idx) => (
         <Polyline
           key={idx}
           positions={h.points.map((pt) => [pt[0], pt[1]])}
-          color="red"
-          weight={0}
+          color={colors[idx % colors.length]}
+          weight={2}
         />
       ))}
     </MapContainer>
