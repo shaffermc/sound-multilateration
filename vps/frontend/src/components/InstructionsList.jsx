@@ -93,9 +93,9 @@ const InstructionList = () => {
         <tbody>
           {instructions.map((instruction) => (
             <tr key={instruction._id}>
-              <td >{instruction.instruction_type}</td>
-              <td >{instruction.instruction_target}</td>
-              <td >{instruction.instruction_value}</td>
+              <td>{instruction.instruction_type}</td>
+              <td>{instruction.instruction_target}</td>
+              <td>{instruction.instruction_value}</td>
               <td style={{ backgroundColor: instruction.station1_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station1_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
               <td style={{ backgroundColor: instruction.station2_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station2_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}
               <td style={{ backgroundColor: instruction.station3_complete ? '#b6ffb6' : 'transparent' }}>{instruction.station3_complete ? 'Yes' : 'No'}</td> {/* Display 'Yes' or 'No' */}

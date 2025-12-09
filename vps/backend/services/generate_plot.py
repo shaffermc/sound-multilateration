@@ -1,153 +1,129 @@
 import sys
+import json
 import numpy as np
 from scipy.optimize import least_squares
-import matplotlib.pyplot as plt
+from pyproj import Proj, Transformer
 import math
-import base64
-from io import BytesIO
-import json
 
-v = 343.0  # speed of sound m/s
+v = 343.0   # speed of sound (m/s)
 
-GRID_CENTER_X = 1500
-GRID_CENTER_Y = 1500
+# ------------------------------------------------------------
+# Create ENU projection
+# ------------------------------------------------------------
+def make_enu(lat0, lon0):
+    proj_ll = Proj("epsg:4326")
+    proj_enu = Proj(f"+proj=tmerc +lat_0={lat0} +lon_0={lon0} +k=1 +units=m +no_defs")
+    to_enu = Transformer.from_proj(proj_ll, proj_enu, always_xy=True)
+    to_ll = Transformer.from_proj(proj_enu, proj_ll, always_xy=True)
+    return to_enu, to_ll
 
-def gps_to_xy(lat_ref, lon_ref, lat, lon):
-    meters_per_deg_lat = 111320
-    meters_per_deg_lon = 111320 * math.cos(math.radians(lat_ref))
-    x = (lon - lon_ref) * meters_per_deg_lon
-    y = (lat - lat_ref) * meters_per_deg_lat
-    return np.array([x, y])
 
-# Require 12 args: lat1 lon1 ... lat4 lon4 tA tB tC tD
-if len(sys.argv) != 13:
-    sys.exit(1)
-
-# Extract GPS coordinates
-lats = [float(sys.argv[i]) for i in [1,3,5,7]]
-lons = [float(sys.argv[i]) for i in [2,4,6,8]]
-
-# Convert GPS to XY
-stations_xy = [gps_to_xy(lats[0], lons[0], lats[i], lons[i]) for i in range(4)]
-
-# Extract delays
-delays = np.array([float(sys.argv[i]) for i in range(9,13)])
-delays = delays - delays[0]
-
-def tdoa_residuals(pos, stations, delays):
-    d = [np.linalg.norm(pos - s) for s in stations]
-    d0 = d[0]
-    return [(d[i] - d0) - v * delays[i] for i in range(3)]
-
+# ------------------------------------------------------------
+# TDOA Residuals
+# ------------------------------------------------------------
 def tdoa_residuals_global(pos, stations, delays):
     res = []
     for i in range(len(stations)):
-        for j in range(i+1, len(stations)):
+        for j in range(i + 1, len(stations)):
             Di = np.linalg.norm(pos - stations[i])
             Dj = np.linalg.norm(pos - stations[j])
             res.append((Di - Dj) - v * (delays[i] - delays[j]))
     return res
 
-cases = [(1,2,3),(0,2,3),(0,1,3),(0,1,2)]
-def solve_3station_tdoa(station_ids, delays):
-    st = [stations_xy[i] for i in station_ids]
-    dl = [delays[i] for i in station_ids]
-    guess = np.mean(st, axis=0)
-    sol = least_squares(tdoa_residuals, guess, args=(st, dl))
-    return sol.x
 
-omit_one_solutions = [solve_3station_tdoa(case, delays) for case in cases]
+# ------------------------------------------------------------
+# Hyperbola Point Generator
+# ------------------------------------------------------------
+def generate_hyperbola_points(Si, Sj, diff_meters, bounds, num=200):
+    (xmin, xmax, ymin, ymax) = bounds
+    xs = np.linspace(xmin, xmax, num)
+    pts = []
 
-guess_global = np.mean(stations_xy, axis=0)
-global_solution = least_squares(
-    tdoa_residuals_global,
-    guess_global,
-    args=(stations_xy, delays)
-).x
+    def f(x, y):
+        Di = np.linalg.norm([x - Si[0], y - Si[1]])
+        Dj = np.linalg.norm([x - Sj[0], y - Sj[1]])
+        return (Di - Dj) - diff_meters
 
-def plot_hyperbolas(delays, solutions, global_solution):
-    S = stations_xy
-    dd = {}
-    for i in range(4):
-        for j in range(i+1,4):
-            dd[(i,j)] = v * (delays[i] - delays[j])
+    for x in xs:
+        ys = np.linspace(ymin, ymax, 400)
+        vals = [f(x, y) for y in ys]
 
-    # Collect all relevant points (stations + solutions)
-    all_x = [s[0] for s in S] + [sol[0] for sol in solutions] + [global_solution[0]]
-    all_y = [s[1] for s in S] + [sol[1] for sol in solutions] + [global_solution[1]]
+        for k in range(len(vals) - 1):
+            if vals[k] == 0 or vals[k] * vals[k + 1] < 0:
+                y0, y1 = ys[k], ys[k + 1]
+                for _ in range(20):  # refine with bisection
+                    ym = (y0 + y1) / 2
+                    if f(x, y0) * f(x, ym) <= 0:
+                        y1 = ym
+                    else:
+                        y0 = ym
+                pts.append((x, (y0 + y1) / 2))
+                break
 
-    # Compute bounding box
-    min_x, max_x = min(all_x), max(all_x)
-    min_y, max_y = min(all_y), max(all_y)
-
-    # Padding factor (adjustable)
-    PAD = 0.25  # 25% padding
-
-    # Expand bounds
-    dx = max_x - min_x
-    dy = max_y - min_y
-    pad_x = dx * PAD
-    pad_y = dy * PAD
-
-    xmin = min_x - pad_x
-    xmax = max_x + pad_x
-    ymin = min_y - pad_y
-    ymax = max_y + pad_y
-
-    # If everything is zero (stations extremely close), set a fallback size
-    if dx < 50:  # 50 meters
-        xmin, xmax = min_x - 100, max_x + 100
-    if dy < 50:
-        ymin, ymax = min_y - 100, max_y + 100
-
-    # Generate grid using dynamic bounds
-    N = 800
-    xs = np.linspace(xmin, xmax, N)
-    ys = np.linspace(ymin, ymax, N)
-    X, Y = np.meshgrid(xs, ys)
+    return pts
 
 
-    fig, ax = plt.subplots(figsize=(9,9))
-    colors = ['red','blue','green','orange','purple','brown']
+# ------------------------------------------------------------
+# MAIN (CLI MODE)
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    # Expect 12 args
+    if len(sys.argv) != 13:
+        print(json.dumps({"error": "Expected 12 arguments"}))
+        sys.exit(1)
 
-    # Draw hyperbolas
-    for idx, ((i,j), dd_ij) in enumerate(dd.items()):
-        Si, Sj = S[i], S[j]
-        Di = np.sqrt((X - Si[0])**2 + (Y - Si[1])**2)
-        Dj = np.sqrt((X - Sj[0])**2 + (Y - Sj[1])**2)
-        H = (Di - Dj) - dd_ij
-        ax.contour(X, Y, H, levels=[0], colors=colors[idx % len(colors)], linewidths=1.1)
+    # Parse args
+    lats = [float(sys.argv[i]) for i in [1,3,5,7]]
+    lons = [float(sys.argv[i]) for i in [2,4,6,8]]
+    delays = np.array([float(sys.argv[i]) for i in [9,10,11,12]])
+    delays = delays - delays[0]
 
-    # Stations
-    for i, s in enumerate(S):
-        ax.scatter(s[0], s[1], s=100)
-        ax.text(s[0], s[1], f" S{i+1}", fontsize=12)
+    # Reference
+    lat0, lon0 = lats[0], lons[0]
+    to_enu, to_ll = make_enu(lat0, lon0)
 
-    # Omit-one solutions
-    for i, sol in enumerate(solutions):
-        ax.scatter(sol[0], sol[1], marker='x', s=150, color='black')
-        ax.text(sol[0], sol[1], f" Sol {i+1}", color='black')
+    # Convert stations to ENU
+    stations_enu = []
+    for lat, lon in zip(lats, lons):
+        x, y = to_enu.transform(lon, lat)
+        stations_enu.append(np.array([x, y]))
+    stations_enu = np.array(stations_enu)
 
     # Global solution
-    ax.scatter(global_solution[0], global_solution[1], marker='*', s=200, color='gold')
+    guess = np.mean(stations_enu, axis=0)
+    sol_enu = least_squares(tdoa_residuals_global, guess, args=(stations_enu, delays)).x
 
-    ax.set_aspect("equal")
-    ax.grid(True)
+    sol_lon, sol_lat = to_ll.transform(sol_enu[0], sol_enu[1])
 
-    # Convert to base64
-    buf = BytesIO()
-    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
-    buf.seek(0)
-    encoded = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close()
-    return encoded
+    # Bounds for hyperbola generation
+    xmin = min(s[0] for s in stations_enu) - 200
+    xmax = max(s[0] for s in stations_enu) + 200
+    ymin = min(s[1] for s in stations_enu) - 200
+    ymax = max(s[1] for s in stations_enu) + 200
+    bounds = (xmin, xmax, ymin, ymax)
 
-# Generate base64 plot
-img_b64 = plot_hyperbolas(delays, omit_one_solutions, global_solution)
+    # Generate hyperbolas
+    hyperbolas = []
+    for i in range(4):
+        for j in range(i + 1, 4):
+            diff = v * (delays[i] - delays[j])
+            pts_enu = generate_hyperbola_points(stations_enu[i], stations_enu[j], diff, bounds)
 
-# Output ONLY JSON
-print(json.dumps({
-    "image": img_b64,
-    "solutions": [s.tolist() for s in omit_one_solutions],
-    "global_solution": global_solution.tolist()
-}))
+            pts_ll = []
+            for x, y in pts_enu:
+                lon, lat = to_ll.transform(x, y)
+                pts_ll.append({"lat": lat, "lon": lon})
+
+            hyperbolas.append({
+                "pair": [i, j],
+                "points": pts_ll
+            })
+
+    # Output JSON for Node.js
+    result = {
+        "stations": [{"lat": a, "lon": b} for a, b in zip(lats, lons)],
+        "origin_solution": {"lat": sol_lat, "lon": sol_lon},
+        "hyperbolas": hyperbolas
+    }
+
+    print(json.dumps(result))

@@ -28,6 +28,41 @@ app.get('/', (req, res) => {
   res.send('Sensor Data Logger API');
 });
 
+app.get('/solve_tdoa', (req, res) => {
+  const query = req.query;
+
+  // Build parameter order for Python
+  const pythonCmd = `python3 services/generate_plot.py \
+    ${query.lat1} ${query.lon1} \
+    ${query.lat2} ${query.lon2} \
+    ${query.lat3} ${query.lon3} \
+    ${query.lat4} ${query.lon4} \
+    ${query.tA} ${query.tB} ${query.tC} ${query.tD}`;
+
+  console.log("Running:", pythonCmd);
+
+  exec(pythonCmd, (error, stdout, stderr) => {
+    console.log("---- PYTHON STDOUT ----");
+    console.log(stdout);
+    console.log("---- PYTHON STDERR ----");
+    console.log(stderr);
+
+    if (error) {
+      return res.status(500).json({ error: "Python execution failed" });
+    }
+
+    const cleaned = stdout.trim();
+
+    try {
+      const json = JSON.parse(cleaned);
+      res.json(json);
+    } catch (err) {
+      console.error("JSON parse failed:", cleaned);
+      res.status(500).json({ error: "Invalid JSON from Python" });
+    }
+  });
+});
+
 app.get('/generate_plot', (req, res) => {
   const {
     lat1, lon1,
