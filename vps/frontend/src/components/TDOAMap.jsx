@@ -37,7 +37,7 @@ export default function TDOAMap({ result }) {
   const hyperbolas = result?.hyperbolas || [];
 
   // 🎨 Colors for hyperbolas
-  const colors = ["red", "orange", "blue", "pink", "yellow", "green"];
+  const colors = ["red", "orange", "blue", "brown", "yellow", "white"];
 
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
@@ -72,7 +72,7 @@ export default function TDOAMap({ result }) {
           key={idx}
           positions={h.points.map((pt) => [pt[0], pt[1]])}
           color={colors[idx % colors.length]}
-          weight={4}
+          weight={2}
         />
       ))}
     </MapContainer>
