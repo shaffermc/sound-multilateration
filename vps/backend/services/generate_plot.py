@@ -2,6 +2,7 @@
 import sys
 import numpy as np
 from scipy.optimize import least_squares
+from scipy.interpolate import CubicSpline
 import math
 import json
 
@@ -20,6 +21,24 @@ def xy_to_gps(lat_ref, lon_ref, x, y):
     lat = lat_ref + y / meters_per_deg_lat
     lon = lon_ref + x / meters_per_deg_lon
     return float(lat), float(lon)
+
+def smooth_hyperbola_points(points, num_smooth_points=500):
+    # Separate the x and y values
+    x_vals = [p[0] for p in points]
+    y_vals = [p[1] for p in points]
+
+    # Create a cubic spline interpolator
+    spline_x = CubicSpline(np.arange(len(x_vals)), x_vals, bc_type='natural')
+    spline_y = CubicSpline(np.arange(len(y_vals)), y_vals, bc_type='natural')
+
+    # Generate new smoothed points
+    smooth_x = np.linspace(0, len(x_vals)-1, num_smooth_points)
+    smooth_y = spline_y(smooth_x)
+    smooth_x = spline_x(smooth_x)
+
+    # Return the smoothed points
+    smooth_points = list(zip(smooth_x, smooth_y))
+    return smooth_points
 
 try:
     # Expect 12 arguments: lat1 lon1 lat2 lon2 lat3 lon3 lat4 lon4 tA tB tC tD
@@ -70,6 +89,7 @@ try:
     # Hyperbolas (low-resolution for speed)
     hyperbolas = []
     num_points = 200  # was 800 → much faster
+    num_smooth_points = 500  # Number of smooth points
     x_range = np.linspace(-500, 500, num_points)
     y_range = np.linspace(-500, 500, num_points)
 
@@ -91,17 +111,11 @@ try:
                         poly.append([lat, lon])
                     prev_val = H
 
-            # Determine if the hyperbola is horizontal or vertical based on the points
-            x_range_diff = max([p[0] for p in poly]) - min([p[0] for p in poly])
-            y_range_diff = max([p[1] for p in poly]) - min([p[1] for p in poly])
+            # Smooth the hyperbola points using cubic spline interpolation
+            smoothed_poly = smooth_hyperbola_points(poly, num_smooth_points=num_smooth_points)
 
-            # Sort points based on orientation (horizontal = sort by X, vertical = sort by Y)
-            if x_range_diff > y_range_diff:
-                poly.sort(key=lambda p: p[0])  # Sort by longitude (X) for horizontal hyperbola
-            else:
-                poly.sort(key=lambda p: p[1])  # Sort by latitude (Y) for vertical hyperbola
-
-            hyperbolas.append({"pair": [i, j], "points": poly})
+            # Add the smoothed points to the hyperbolas list
+            hyperbolas.append({"pair": [i, j], "points": smoothed_poly})
 
     # Convert stations & solutions to GPS
     stations_gps = [{"lat": lats[i], "lon": lons[i]} for i in range(4)]

@@ -72,7 +72,7 @@ export default function TDOAMap({ result }) {
           key={idx}
           positions={h.points.map((pt) => [pt[0], pt[1]])}
           color={colors[idx % colors.length]}
-          weight={2}
+          weight={4}
         />
       ))}
     </MapContainer>
