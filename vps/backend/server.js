@@ -28,36 +28,6 @@ app.get('/', (req, res) => {
   res.send('Sensor Data Logger API');
 });
 
-app.get('/solve_tdoa', (req, res) => {
-  const { lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD } = req.query;
-
-  // Validate all required parameters
-  if (![lat1, lon1, lat2, lon2, lat3, lon3, lat4, lon4, tA, tB, tC, tD].every(Boolean)) {
-    return res.status(400).json({ error: 'Missing required query parameters' });
-  }
-
-  const pythonCmd = `python3 services/generate_plot.py \
-${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
-
-  console.log('Running:', pythonCmd);
-
-  exec(pythonCmd, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Python execution failed:', stderr);
-      return res.status(500).json({ error: 'Python execution failed' });
-    }
-
-    const cleaned = stdout.trim();
-    try {
-      const json = JSON.parse(cleaned);
-      res.json(json);
-    } catch (err) {
-      console.error('JSON parse failed:', cleaned);
-      res.status(500).json({ error: 'Invalid JSON from Python' });
-    }
-  });
-});
-
 
 app.get('/generate_plot', (req, res) => {
   const {
@@ -73,7 +43,7 @@ app.get('/generate_plot', (req, res) => {
     return res.status(400).send('Missing required query parameters');
   }
 
-  const pythonCmd = `python3 services/generate_plot.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
+  const pythonCmd = `python3 services/generate-plot-local.py ${lat1} ${lon1} ${lat2} ${lon2} ${lat3} ${lon3} ${lat4} ${lon4} ${tA} ${tB} ${tC} ${tD}`;
 
   console.log("Running:", pythonCmd);
 
