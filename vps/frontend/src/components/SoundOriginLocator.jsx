@@ -1,46 +1,55 @@
-import { useState } from "react";
-import SoundOriginControls from "./SoundOriginControls";
-import SoundOriginMap from "./SoundOriginMap";
+import { useState } from 'react';
+import SoundOriginControls from './SoundOriginControls';
+import SoundOriginMap from './SoundOriginMap';
 
-export default function SoundOriginLocator() {
-  const [stations, setStations] = useState([]);
-  const [hyperbolas, setHyperbolas] = useState(null);
-  const [solutionPoint, setSolutionPoint] = useState(null);
+function SoundOriginLocator() {
+  const localPresets = {
+    "Test Area 1": {
+      coords: [
+        { lat: 38.836902, lon: -77.3827},
+        { lat: 38.836902, lon: -77.3822 },
+        { lat: 38.837799, lon: -77.3822 },
+        { lat: 38.837799, lon: -77.3827 },
+      ],
+      times: [0.09, 0.1, 0.18, 0.19]
+    },
+    "Test Area 2": {
+      coords: [
+        { lat: 40.70, lon: -73.90 },
+        { lat: 40.72, lon: -73.95 },
+        { lat: 40.74, lon: -74.00 },
+        { lat: 40.76, lon: -73.98 },
+      ],
+      times: [0.12, 0.22, 0.28, 0.31]
+    }
+  };
 
-  const handleGenerate = async (stationsData, times) => {
-    // Build query string
-    const query = stationsData
-      .map((s, i) => `lat${i + 1}=${s.lat}&lon${i + 1}=${s.lon}`)
-      .join("&");
-    const timeQuery = times
-      .map((t, i) => `t${String.fromCharCode(65 + i)}=${t}`)
-      .join("&");
+  const [presetName, setPresetName] = useState("Test Area 1");
+  const [stations, setStations] = useState(localPresets[presetName].coords);
+  const [times, setTimes] = useState(localPresets[presetName].times);
+  const [tdoaData, setTdoaData] = useState(null);
 
-    const url = `http://209.46.124.94:3000/solve_tdoa?${query}&${timeQuery}`;
-
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch");
-
-    const data = await response.json();
-    setStations(data.station_coords);
-    setHyperbolas(data.hyperbolas);
-    setSolutionPoint(data.origin_solution);
+  const handlePresetChange = (e) => {
+    const name = e.target.value;
+    setPresetName(name);
+    setStations(localPresets[name].coords);
+    setTimes(localPresets[name].times);
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <SoundOriginControls onGenerate={handleGenerate} />
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-        {hyperbolas && solutionPoint ? (
-          <SoundOriginMap
-            stations={stations}
-            hyperbolas={hyperbolas}
-            solution={solutionPoint}
-          />
-        ) : (
-          <p>No map data yet. Enter coordinates and times, then click "Generate Map".</p>
-        )}
-      </div>
+    <div style={{ display: 'flex' }}>
+      <SoundOriginControls
+        presetName={presetName}
+        onPresetChange={handlePresetChange}
+        stations={stations}
+        setStations={setStations}
+        times={times}
+        setTimes={setTimes}
+        setTdoaData={setTdoaData}
+      />
+      <SoundOriginMap tdoaData={tdoaData} />
     </div>
   );
 }
+
+export default SoundOriginLocator;
