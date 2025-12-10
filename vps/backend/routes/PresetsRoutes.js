@@ -13,6 +13,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// DELETE /presets/:id → delete one preset
+router.delete('/:id', async (req, res) => {
+  try {
+    const deleted = await Preset.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Preset not found" });
+    }
+
+    res.json({ success: true, message: "Preset deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete preset" });
+  }
+});
+
 // POST /presets → create a new preset
 router.post('/', async (req, res) => {
   const { name, coords, times } = req.body;

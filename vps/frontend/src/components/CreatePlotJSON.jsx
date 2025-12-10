@@ -68,6 +68,41 @@ function CreatePlotJSON({ onResult }) {
     setTimes(updated);
   };
 
+  const deletePreset = async () => {
+  if (!selectedPresetId) {
+      alert("No preset selected.");
+      return;
+  }
+
+  if (!window.confirm("Are you sure you want to delete this preset?")) return;
+
+  try {
+      const res = await fetch(`http://209.46.124.94:3000/presets/${selectedPresetId}`, {
+      method: "DELETE"
+      });
+
+      if (!res.ok) throw new Error("Delete failed.");
+
+      alert("Preset deleted!");
+
+      setSelectedPresetId("");
+      setNewPresetName("");
+      setStations([
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0 },
+      { lat: 0, lon: 0 }
+      ]);
+      setTimes([0, 0, 0, 0]);
+
+      loadPresets(); // refresh dropdown list
+  } catch (err) {
+      console.error(err);
+      alert("Error deleting preset.");
+  }
+  };
+
+
   // -------------------------
   // SAVE TO MONGODB
   // -------------------------
@@ -207,6 +242,21 @@ function CreatePlotJSON({ onResult }) {
         >
           Save Preset
         </button>
+        
+        {selectedPresetId && (
+        <button
+            onClick={deletePreset}
+            style={{
+            fontSize: '16px',
+            padding: '10px 20px',
+            marginRight: '10px',
+            backgroundColor: '#d9534f',
+            color: 'white'
+            }}
+        >
+          Delete Preset
+        </button>
+        )}
 
         <button
           onClick={fetchJSON}
