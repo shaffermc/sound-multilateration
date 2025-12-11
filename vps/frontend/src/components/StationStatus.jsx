@@ -130,6 +130,18 @@ return (
             </td>
           ))}
         </tr>
+        <tr>
+           <th>Temp</th>
+           <td></td>
+        </tr>
+           <tr>
+           <th>Humidity</th>
+           <td></td>
+        </tr>
+           <tr>
+           <th>Voltage</th>
+           <td></td>
+        </tr>
       </tbody>
     </table>
   </div>
