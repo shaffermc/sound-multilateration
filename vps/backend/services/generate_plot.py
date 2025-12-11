@@ -21,13 +21,12 @@ def xy_to_gps(lat_ref, lon_ref, x, y):
     lon = lon_ref + x / meters_per_deg_lon
     return float(lat), float(lon)
 
-# Residuals for 3-station solve
+# TDOA residuals
 def tdoa_residuals(pos, stations, delays):
     d = [np.linalg.norm(pos - s) for s in stations]
     d0 = d[0]
     return [(d[i] - d0) - v * delays[i] for i in range(len(stations))]
 
-# Residuals for 4-station solve
 def tdoa_residuals_global(pos, stations, delays):
     res = []
     for i in range(len(stations)):
@@ -37,40 +36,60 @@ def tdoa_residuals_global(pos, stations, delays):
             res.append((Di - Dj) - v * (delays[i] - delays[j]))
     return res
 
-# Compute hyperbola by scanning ONLY along x → ensures smooth, clean lines
-def compute_hyperbola(Si, Sj, dd, x_min, x_max, y_min, y_max, num_points=700):
-    pts = []
+# --------------------------------------------------------------------
+#     NEW: 2-BRANCH HYPERBOLA SOLVER (smooth, no shading)
+# --------------------------------------------------------------------
+def compute_two_branch_hyperbola(Si, Sj, dd, x_min, x_max, y_min, y_max, num_points=700):
     x_range = np.linspace(x_min, x_max, num_points)
 
-    for x in x_range:
-        try:
-            y = brentq(
-                lambda y: math.dist((x, y), Si) - math.dist((x, y), Sj) - dd,
-                y_min, y_max
-            )
-            pts.append((x, y))
-        except ValueError:
-            continue
+    upper = []
+    lower = []
 
-    # Sort so lines draw smoothly in React
-    pts.sort(key=lambda p: p[0])
-    return pts
+    for x in x_range:
+        # We're looking for two roots: one on each side of expected center line
+        def f(y):
+            return math.dist((x, y), Si) - math.dist((x, y), Sj) - dd
+
+        # Try splitting the y-range into two halves
+        y_mid = (y_min + y_max) / 2
+
+        # UPPER BRANCH: search in [y_mid, y_max]
+        try:
+            y_up = brentq(f, y_mid, y_max)
+            upper.append((x, y_up))
+        except ValueError:
+            pass
+
+        # LOWER BRANCH: search in [y_min, y_mid]
+        try:
+            y_lo = brentq(f, y_min, y_mid)
+            lower.append((x, y_lo))
+        except ValueError:
+            pass
+
+    # Smooth ordering
+    upper.sort(key=lambda p: p[0])
+    lower.sort(key=lambda p: p[0])
+
+    return upper, lower
+
+# --------------------------------------------------------------------
 
 try:
     if len(sys.argv) != 13:
         raise ValueError("Expected 12 arguments")
 
-    # Parse GPS
+    # Parse inputs
     lats = [float(sys.argv[i]) for i in [1,3,5,7]]
     lons = [float(sys.argv[i]) for i in [2,4,6,8]]
+
     lat_ref, lon_ref = lats[0], lons[0]
     stations_xy = [gps_to_xy(lat_ref, lon_ref, lats[i], lons[i]) for i in range(4)]
 
-    # Parse times
     delays = np.array([float(sys.argv[i]) for i in range(9,13)])
     delays = delays - delays[0]
 
-    # Solve omit-one cases (correct TDOA alignment)
+    # Solve omit-one
     cases = [(1,2,3),(0,2,3),(0,1,3),(0,1,2)]
 
     def solve_3station(st_ids):
@@ -88,30 +107,42 @@ try:
         tdoa_residuals_global, guess_global, args=(stations_xy, delays)
     ).x
 
-    # Compute hyperbolas (smooth + no shading)
+    # Bounding region
     all_x = [s[0] for s in stations_xy]
     all_y = [s[1] for s in stations_xy]
-    x_min, x_max = min(all_x) - 400, max(all_x) + 400
-    y_min, y_max = min(all_y) - 400, max(all_y) + 400
+    max_sep = max(math.dist(stations_xy[i], stations_xy[j])
+                  for i in range(4) for j in range(i+1, 4))
 
+    padding = max_sep * 3
+    x_min, x_max = min(all_x) - padding, max(all_x) + padding
+    y_min, y_max = min(all_y) - padding, max(all_y) + padding
+
+    # Generate all hyperbolas (each with 2 branches)
     hyperbolas = []
+
     for i in range(4):
         for j in range(i+1, 4):
             Si = stations_xy[i]
             Sj = stations_xy[j]
             dd = v * (delays[i] - delays[j])
 
-            pts_xy = compute_hyperbola(
+            upper_xy, lower_xy = compute_two_branch_hyperbola(
                 Si, Sj, dd, x_min, x_max, y_min, y_max
             )
 
-            pts_gps = [xy_to_gps(lat_ref, lon_ref, x, y) for x, y in pts_xy]
+            # Convert each branch to GPS
+            upper_gps = [xy_to_gps(lat_ref, lon_ref, x, y) for x, y in upper_xy]
+            lower_gps = [xy_to_gps(lat_ref, lon_ref, x, y) for x, y in lower_xy]
 
             hyperbolas.append({
                 "pair": [i, j],
-                "points": pts_gps
+                "branches": [
+                    upper_gps,
+                    lower_gps
+                ]
             })
 
+    # Convert output
     stations_gps = [{"lat": lats[i], "lon": lons[i]} for i in range(4)]
     omit_gps = [
         {"lat": xy_to_gps(lat_ref, lon_ref, p[0], p[1])[0],
