@@ -2,12 +2,8 @@ import { useState } from "react";
 
 import "./App.css";
 
-import AddInstruction from "./components/AddInstruction";
-import InstructionsList from "./components/InstructionsList";
-import AudioFileList from "./components/AudioFileList";
-import BandwidthDisplay from "./components/BandwidthDisplay";
 import RetrieveAudio from "./components/RetrieveAudio";
-
+import TDOAParameters from "./components/TDOAParameters";
 import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
@@ -26,6 +22,10 @@ export default function App() {
         </div>
         <RetrieveAudio />
         <RetrievalStatus />
+        <TDOAParameters
+           stations={result?.stations || []}
+           onResult={setResult}
+           />
         <StationStatus />
       </div>
 

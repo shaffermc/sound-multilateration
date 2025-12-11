@@ -2,6 +2,8 @@ import React from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useMap } from "react-leaflet";
+import { useEffect } from "react";
 
 // Custom circle icons
 const blackIcon = new L.DivIcon({
@@ -25,6 +27,23 @@ const yellowIcon = new L.DivIcon({
   iconAnchor: [7, 7],
 });
 
+function ZoomToStations({ stations }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!stations || stations.length === 0) return;
+
+    const valid = stations.filter(s => s.lat !== 0 && s.lon !== 0);
+    if (valid.length === 0) return;
+
+    const bounds = L.latLngBounds(valid.map(s => [s.lat, s.lon]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+
+  }, [stations, map]);
+
+  return null;
+}
+
 export default function TDOAMap({ result }) {
   const defaultCenter = [38.836902, -77.3827];
   const mapCenter = result?.stations?.[0]
@@ -45,12 +64,15 @@ export default function TDOAMap({ result }) {
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
-      {/* Stations */}
-      {stations.map((s, i) => (
-        <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
-          <Popup>Station {i + 1}</Popup>
-        </Marker>
-      ))}
+        {/* ⭐ AUTO-ZOOM WHEN PRESET CHANGES */}
+        <ZoomToStations stations={stations} />
+
+        {/* Stations */}
+        {stations.map((s, i) => (
+            <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
+            <Popup>Station {i + 1}</Popup>
+            </Marker>
+        ))}
 
       {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (

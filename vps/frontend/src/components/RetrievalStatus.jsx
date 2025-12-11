@@ -16,7 +16,7 @@ const RetrievalStatus = () => {
       const data = await response.json();
 
       // Limit to the last 10 filtered entries
-      setInstructions(data.slice(-10));
+      setInstructions(data.slice(-10).reverse());
       setLoading(false);
     } catch (error) {
       setError(error.message);
@@ -33,7 +33,7 @@ const RetrievalStatus = () => {
           "http://209.46.124.94:3000/instructions/get_instructions"
         );
         const data = await response.json();
-        const newest = data.slice(-10);
+        const newest = data.slice(-10).reverse();
 
         // Only update if data changed
         setInstructions(prev => {
