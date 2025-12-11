@@ -42,36 +42,31 @@ const RetrieveAudio = () => {
 
     try {
       const response = await axios.post('http://209.46.124.94:3000/instructions/add_instructions', newInstruction);
-      setMessage('Request submitted. Audio processing. ');
       setInstructionValue(null); // Reset to null
       //window.location.reload();
 
     } catch (error) {
-      setMessage('Error adding instruction. Please try again.');
       console.error(error);
     }
   };
 
   return (
     <div>
-      <h2  style={{ textAlign: 'left' }}>Sound Source Locator</h2>
-      Please select the date and time of sound:
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
         <div>
-          <label>(Date/Time):</label>
-          <DatePicker
-            selected={instructionValue}  // Use the Date object directly
+            <label>Select Time of Sound:</label>
+            <DatePicker
+            selected={instructionValue}
             onChange={handleDateChange}
             showTimeSelect
             dateFormat="yyyy-MM-dd HH:mm:ss"
-            timeIntervals={5}  // 5 minute increments
+            timeIntervals={5}
             required
-          />
+            />
         </div>
-        <button type="submit">Submit Request</button>
+        
+      <button type="submit">Retrieve</button>
       </form>
-
-      {message && <p>{message}</p>}
     </div>
   );
 };

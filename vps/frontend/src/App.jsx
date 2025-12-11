@@ -11,6 +11,7 @@ import RetrieveAudio from "./components/RetrieveAudio";
 
 import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
+import RetrievalStatus from "./components/RetrievalStatus";
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -20,15 +21,11 @@ export default function App() {
 
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
-        <RetrieveAudio />
         <div>
         <CreatePlotJSON onResult={setResult} />
         </div>
-        <StationStatusTable />
-        <AddInstruction />
-        <BandwidthDisplay />
-        <AudioFileList />
-        <InstructionsList />
+        <RetrieveAudio />
+        <RetrievalStatus />
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}

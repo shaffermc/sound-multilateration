@@ -161,65 +161,61 @@ function CreatePlotJSON({ onResult }) {
       <div style={{ padding: "20px", overflowY: "auto", maxWidth: "400px" }}>
 
         {/* LOAD PRESET DROPDOWN */}
-        <h3>Load Saved Preset</h3>
         <select
           value={selectedPresetId}
           onChange={handlePresetChange}
           style={{ marginBottom: "20px", padding: "8px", width: "100%" }}
         >
-          <option value="">-- Select a saved preset --</option>
+          <option value="">-- Select an Area --</option>
           {dbPresets.map(p => (
             <option key={p._id} value={p._id}>{p.name}</option>
           ))}
         </select>
 
-        {/* PRESET NAME INPUT */}
-        <h3>Preset Name</h3>
-        <input
-          type="text"
-          value={newPresetName}
-          onChange={e => setNewPresetName(e.target.value)}
-          placeholder="Enter preset name..."
-          style={{ width: "100%", padding: "8px", marginBottom: "20px" }}
-        />
+            {/* COORDINATE INPUTS */}
+        <div
+        style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '3px',
+            marginBottom: '5px'
+        }}
+        >
+        {stations.map((station, i) => (
+            <div
+            key={i}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '2px',
+                padding: '0px 0'
+            }}
+            >
+            <strong>S{String.fromCharCode(65 + i)}</strong>
 
-        {/* COORDINATE INPUTS */}
-        <h3>Station Locations</h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '10px',
-          marginBottom: '20px'
-        }}>
-          {stations.map((station, i) => (
-            <div key={i} style={{ border: '1px solid #ccc', padding: '10px' }}>
-              <strong>Station {String.fromCharCode(65 + i)}</strong>
-              <div>
-                Lat:
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={station.lat}
-                  onChange={e => handleCoordChange(i, 'lat', e.target.value)}
-                  style={{ width: "80px" }}
-                />
-              </div>
-              <div>
-                Lon:
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={station.lon}
-                  onChange={e => handleCoordChange(i, 'lon', e.target.value)}
-                  style={{ width: "80px" }}
-                />
-              </div>
+            <span>Lat:</span>
+            <input
+                type="number"
+                step="0.000001"
+                value={station.lat}
+                onChange={e => handleCoordChange(i, 'lat', e.target.value)}
+                style={{ width: "100px" }}
+            />
+
+            <span>Lon:</span>
+            <input
+                type="number"
+                step="0.000001"
+                value={station.lon}
+                onChange={e => handleCoordChange(i, 'lon', e.target.value)}
+                style={{ width: "100px" }}
+            />
             </div>
-          ))}
+        ))}
         </div>
 
         {/* TIME INPUTS */}
-        <h3>Time Delays</h3>
+        Delayed Time of Arrivals
         <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
           {times.map((t, i) => (
             <div key={i}>
@@ -229,51 +225,58 @@ function CreatePlotJSON({ onResult }) {
                 step="0.01"
                 value={t}
                 onChange={e => handleTimeChange(i, e.target.value)}
-                style={{ width: "80px" }}
-              /> s
+                style={{ width: "50px" }}
+              /> 
             </div>
           ))}
         </div>
 
-        {/* SAVE + GENERATE BUTTONS */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* PRESET NAME INPUT */}
+        <input
+            type="text"
+            value={newPresetName}
+            onChange={e => setNewPresetName(e.target.value)}
+            placeholder="New Preset Name"
+            style={{ width: "50%", padding: "8px" }}
+        />
+
+        {/* SAVE BUTTON */}
         <button
-          onClick={savePreset}
-          style={{ fontSize: '16px', padding: '10px 20px', marginRight: '10px' }}
+            onClick={savePreset}
+            style={{ fontSize: '12px', padding: '5px 5px' }}
         >
-          Save Preset
+            SAVE
         </button>
-        
+
+        {/* DELETE BUTTON (only show if a preset is selected) */}
         {selectedPresetId && (
-        <button
+            <button
             onClick={deletePreset}
             style={{
-            fontSize: '16px',
-            padding: '10px 20px',
-            marginRight: '10px',
-            backgroundColor: '#d9534f',
-            color: 'white'
+                fontSize: '12px',
+                padding: '5px 5px',
+                backgroundColor: '#d9534f',
+                color: 'white'
             }}
-        >
-          Delete Preset
-        </button>
+            >
+            DELETE
+            </button>
         )}
+        </div>
 
         <button
           onClick={fetchJSON}
-          style={{ fontSize: '16px', padding: '10px 20px' }}
+          style={{ 
+            fontSize: '16px', 
+            padding: '5px 5px',
+            backgroundColor: '#b6ffb6',
+            color: 'black'
+        }}
         >
-          Generate JSON
+          Plot Map
         </button>
-
       </div>
-
-      <div style={{
-        padding: "20px",
-        flex: 1,
-        borderLeft: "2px solid #eee",
-        background: "#fafafa"
-      }}></div>
-
     </div>
   );
 }
