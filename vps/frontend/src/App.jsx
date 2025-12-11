@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import "./App.css";
 
-import StationStatusTable from "./components/StationStatusTable";
 import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
@@ -12,6 +11,7 @@ import RetrieveAudio from "./components/RetrieveAudio";
 import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
+import StationStatus from "./components/StationStatus";
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -26,6 +26,7 @@ export default function App() {
         </div>
         <RetrieveAudio />
         <RetrievalStatus />
+        <StationStatus />
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
