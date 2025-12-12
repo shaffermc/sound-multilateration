@@ -91,13 +91,17 @@ app.get("/generate_plot_json", (req, res) => {
 // Routes
 app.use('/presets', PresetsRoutes);
 
-app.get('/get-ip', (req, res) => {
-  const ip =
-    req.headers['x-forwarded-for']?.split(',')[0] ||
+app.get("/get-ip", (req, res) => {
+  let ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
     req.socket.remoteAddress;
+
+  // Remove IPv6 ::ffff: prefix
+  ip = ip.replace(/^::ffff:/, "");
 
   res.json({ ip });
 });
+
 
 app.get('/generate_plot', (req, res) => {
   const {
