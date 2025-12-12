@@ -12,9 +12,10 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 # Load values from config
-stationID = config.get('stationID', 'DEFAULT')  # DEFAULT used if not found
+stationID = config.get('stationID')  # DEFAULT used if not found
 base_directory = config.get('base_directory')
 station_status_url = config.get('station_status_url')
+get_ip_url = config.get('get_ip_url')
 
 # Function to get the uptime in a human-readable format (in minutes, rounded)
 def get_uptime():
@@ -46,9 +47,10 @@ def get_ip_address():
 # Function to get the public IP address
 def get_public_ip():
     try:
-        response = requests.get("https://api.ipify.org")
-        return response.text
-    except requests.exceptions.RequestException as e:
+        response = requests.get("get_ip_url", timeout=20)
+        data = response.json()
+        return data.get("ip")
+    except Exception as e:
         print(f"Error getting public IP: {e}")
         return None
 

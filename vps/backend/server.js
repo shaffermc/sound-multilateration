@@ -91,6 +91,14 @@ app.get("/generate_plot_json", (req, res) => {
 // Routes
 app.use('/presets', PresetsRoutes);
 
+app.get('/get-ip', (req, res) => {
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0] ||
+    req.socket.remoteAddress;
+
+  res.json({ ip });
+});
+
 app.get('/generate_plot', (req, res) => {
   const {
     lat1, lon1,
