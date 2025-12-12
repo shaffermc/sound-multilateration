@@ -77,7 +77,7 @@ const StationStatus = () => {
         <tbody>
           {/* Timestamp row */}
           <tr>
-            <th>Last Update</th>
+            <th>Seen</th>
             {stationData.map(item => {
               const ts = new Date(item.status.timestamp);
 
@@ -93,7 +93,7 @@ const StationStatus = () => {
 
           {/* Uptime */}
           <tr>
-            <th>UT (DD:HH:MM)</th>
+            <th>UT</th>
             {stationData.map(item => (
               <td key={item.status._id + "_uptime"}>
                 {formatUptime(item.status.station_uptime)}
@@ -103,7 +103,7 @@ const StationStatus = () => {
 
           {/* Free Space */}
           <tr>
-            <th>Free Space</th>
+            <th>FS</th>
             {stationData.map(item => (
               <td key={item.status._id + "_space"}>
                 {item.status.station_free_space || "N/A"}
@@ -113,7 +113,7 @@ const StationStatus = () => {
 
           {/* File Count */}
           <tr>
-            <th>File Count</th>
+            <th>FC</th>
             {stationData.map(item => (
               <td key={item.status._id + "_files"}>
                 {item.status.station_file_count || "N/A"}
@@ -123,35 +123,35 @@ const StationStatus = () => {
 
           {/* Local IP */}
           <tr>
-            <th>Local IP</th>
+            <th>L IP</th>
             {stationData.map(item => (
               <td key={item.status._id + "_localip"}>
-                {item.status.station_local_ip || "N/A"}
+                <span style={{ fontSize: "0.75em" }}>{item.status.station_local_ip || "N/A"}</span>
               </td>
             ))}
           </tr>
 
           {/* Public IP */}
           <tr>
-            <th>Public IP</th>
+            <th>P IP</th>
             {stationData.map(item => (
               <td key={item.status._id + "_publicip"}>
-                {item.status.station_public_ip || "N/A"}
+                <span style={{ fontSize: "0.75em" }}>{item.status.station_public_ip || "N/A"}</span>
               </td>
             ))}
           </tr>
 
           {/* Future Sensors */}
           <tr>
-            <th>Temp</th>
+            <th>T</th>
             <td></td>
           </tr>
           <tr>
-            <th>Humidity</th>
+            <th>H</th>
             <td></td>
           </tr>
           <tr>
-            <th>Voltage</th>
+            <th>V</th>
             <td></td>
           </tr>
         </tbody>

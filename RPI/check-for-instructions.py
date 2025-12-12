@@ -3,7 +3,7 @@ import json
 import requests
 import time
 import paramiko
-import logging  
+import glob
 
 # Load config file
 config_path = '/home/bob325/config.json'   
@@ -20,24 +20,18 @@ password = config.get('password')
 instructions_url = config.get('instructions_url')
 audio_upload_directory = config.get('audio_upload_directory')
 
-# Set up logging
-logging.basicConfig(filename='/home/bob325/process_instructions.log', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
-
 def upload_file_via_sftp(local_file_path, remote_file_path):
     try:
         transport = paramiko.Transport((hostname, port))
         transport.connect(username=username, password=password)
         sftp = paramiko.SFTPClient.from_transport(transport)
         sftp.put(local_file_path, remote_file_path)
-        logging.info(f"Uploaded {local_file_path} to {remote_file_path}")
+        print(f"Uploaded {local_file_path} to {remote_file_path}")
         sftp.close()
     except Exception as e:
-        logging.error(f"SFTP upload failed: {e}")
+        print(f"SFTP upload failed: {e}")
     finally:
         transport.close()
-
 
 def delete_files_in_directory(directory):
     try:
@@ -45,9 +39,9 @@ def delete_files_in_directory(directory):
             file_path = os.path.join(directory, filename)
             if os.path.isfile(file_path):
                 os.remove(file_path)
-                logging.info(f"Deleted {file_path}")
+                print(f"Deleted {file_path}")
     except Exception as e:
-        logging.error(f"Error deleting files in {directory}: {e}")
+        print(f"Error deleting files in {directory}: {e}")
 
 
 def mark_station_complete(instruction_id):
@@ -57,9 +51,9 @@ def mark_station_complete(instruction_id):
     try:
         response = requests.put(update_url, json=data)
         response.raise_for_status()
-        logging.info(f"Marked station {stationID} complete for instruction {instruction_id}")
+        print(f"Marked station {stationID} complete for instruction {instruction_id}")
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to update instruction {instruction_id}: {e}")
+        print(f"Failed to update instruction {instruction_id}: {e}")
 
 
 def process_instructions():
@@ -68,7 +62,7 @@ def process_instructions():
         response.raise_for_status()
         instructions = response.json()
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to fetch instructions: {e}")
+        print(f"Failed to fetch instructions: {e}")
         return
 
     for instr in instructions:
@@ -81,23 +75,38 @@ def process_instructions():
         instruction_target = instr.get('instruction_target')
         instruction_id = instr.get('_id')
 
-        logging.info(f"Processing instruction {instruction_id}: type={instruction_type}, target={instruction_target}")
+        print(f"Processing instruction {instruction_id}: type={instruction_type}, target={instruction_target}")
 
         # Skip if already completed
         if all_complete or station_complete:
-            logging.info(f"Instruction {instruction_id} already complete for this station")
+            print(f"Instruction {instruction_id} already complete for this station")
             continue
 
         if instruction_target not in [stationID, 'ALL']:
-            logging.info(f"Instruction {instruction_id} not for this station")
+            print(f"Instruction {instruction_id} not for this station")
             continue
 
         # Execute instruction
         if instruction_type == 'sound_request':
-            local_file = os.path.join(base_directory, f"{instruction_value}.wav")
-            remote_file = f"{audio_upload_directory}{instruction_value}_audio{stationID}.wav"
-            upload_file_via_sftp(local_file, remote_file)
-            mark_station_complete(instruction_id)
+            # instruction_value looks like "2025-12-12-15-55-00"
+            prefix = instruction_value.rsplit('-', 1)[0]  # drops last "-SS"
+            pattern = os.path.join(base_directory, f"{prefix}-*.wav")
+
+            # Find matching files
+            matches = sorted(glob.glob(pattern))
+
+            if not matches:
+                print("No matching audio file found (ignoring seconds).")
+            else:
+                # Pick the closest by timestamp or just take the first match
+                local_file = matches[0]
+
+                # Build remote filename based on original instruction value
+                remote_file = f"{audio_upload_directory}{instruction_value}_audio{stationID}.wav"
+
+                upload_file_via_sftp(local_file, remote_file)
+                mark_station_complete(instruction_id)
+
 
         elif instruction_type == 'erase_recordings':
             delete_files_in_directory(base_directory)
@@ -105,16 +114,14 @@ def process_instructions():
 
         elif instruction_type == 'reboot':
             mark_station_complete(instruction_id)
-            logging.info("Rebooting Raspberry Pi in 1 second...")
+            print("Rebooting Raspberry Pi in 1 second...")
             time.sleep(1)
             os.system('sudo reboot')
 
         else:
-            logging.warning(f"Unknown instruction type: {instruction_type}")
-
+            print(f"Unknown instruction type: {instruction_type}")
 
 # Main loop
 while True:
     process_instructions()
-    logging.info("Sleeping 5 minutes...")
-    time.sleep(300)
+    time.sleep(60)

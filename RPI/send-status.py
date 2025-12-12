@@ -47,7 +47,7 @@ def get_ip_address():
 # Function to get the public IP address
 def get_public_ip():
     try:
-        response = requests.get("get_ip_url", timeout=20)
+        response = requests.get(get_ip_url, timeout=5)
         data = response.json()
         return data.get("ip")
     except Exception as e:

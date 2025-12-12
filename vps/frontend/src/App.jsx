@@ -8,6 +8,11 @@ import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
 import StationStatus from "./components/StationStatus";
+import BandwidthDisplay from "./components/BandwidthDisplay";
+import AddInstruction from "./components/AddInstruction";
+import InstructionsList from "./components/InstructionsList";
+import AudioFileList from "./components/AudioFileList";
+
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -27,6 +32,10 @@ export default function App() {
            onResult={setResult}
            />
         <StationStatus />
+        <BandwidthDisplay />
+        <AddInstruction />
+        <InstructionsList />
+        <AudioFileList />
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
