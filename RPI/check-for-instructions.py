@@ -98,15 +98,26 @@ def process_instructions():
             if not matches:
                 print("No matching audio file found (ignoring seconds).")
             else:
-                # Pick the closest by timestamp or just take the first match
+                # Pick the first match (or modify to choose closest if needed)
                 local_file = matches[0]
 
-                # Build remote filename based on original instruction value
-                remote_file = f"{audio_upload_directory}{instruction_value}_audio{stationID}.wav"
+                # Actual local filename
+                real_filename = os.path.basename(local_file)
+
+                # Split name and extension
+                name, ext = os.path.splitext(real_filename)
+
+                # Build new remote filename:
+                # originalName_audio<stationID>.wav
+                remote_filename = f"{name}_audio{stationID}{ext}"
+
+                # Build full remote path
+                remote_file = os.path.join(audio_upload_directory, remote_filename)
+
+                print(f"Uploading {local_file} as {remote_file}")
 
                 upload_file_via_sftp(local_file, remote_file)
                 mark_station_complete(instruction_id)
-
 
         elif instruction_type == 'erase_recordings':
             delete_files_in_directory(base_directory)
