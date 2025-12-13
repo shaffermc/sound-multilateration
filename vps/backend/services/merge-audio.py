@@ -20,9 +20,9 @@ try:
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
     # Trigger a server selection to verify connection
     client.admin.command('ping')
-    print("✅ MongoDB connection successful")
+    print("MongoDB connection successful")
 except ConnectionFailure as e:
-    print("❌ MongoDB connection failed:", e)
+    print("MongoDB connection failed:", e)
     exit(1)
 
 db = client[DB_NAME]
@@ -39,7 +39,7 @@ def merge_audio_files(file_prefix):
         filename = f"{file_prefix}_audio{i}.wav"
         filepath = os.path.join(AUDIO_FOLDER, filename)
         if not os.path.exists(filepath):
-            print(f"⚠️ Missing file: {filepath}")
+            print(f"Missing file: {filepath}")
             return False
         files.append(AudioSegment.from_file(filepath))
 
@@ -51,11 +51,11 @@ def merge_audio_files(file_prefix):
     combined = AudioSegment.from_mono_audiosegments(*files)
     output_file = os.path.join(MERGED_FOLDER, f"{file_prefix}_combined.wav")
     combined.export(output_file, format="wav")
-    print(f"✅ Merged audio saved to {output_file}")
+    print(f"Merged audio saved to {output_file}")
     return True
 
 def check_and_merge():
-    print("\n🔍 Checking for 'sound_request' instructions not yet merged...")
+    print("\nChecking for 'sound_request' instructions not yet merged...")
     instructions = list(instructions_collection.find({
         "instruction_type": "sound_request",
         "all_complete": False
@@ -70,7 +70,7 @@ def check_and_merge():
             instr.get("station3_complete", False),
             instr.get("station4_complete", False)
         ]):
-            print("✅ All stations complete, attempting merge.")
+            print("All stations complete, attempting merge.")
             success = merge_audio_files(instr["instruction_value"])
             if success:
                 instructions_collection.update_one(
@@ -79,12 +79,12 @@ def check_and_merge():
                 )
                 print(f"Instruction {instr['_id']} marked as merged.")
         else:
-            print("⚠️ Not all files present to merge.")
+            print("Not all files present to merge.")
 
 if __name__ == "__main__":
     while True:
         try:
             check_and_merge()
         except Exception as e:
-            print("❌ Error during merge check:", e)
+            print("Error during merge check:", e)
         time.sleep(CHECK_INTERVAL)

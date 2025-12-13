@@ -102,22 +102,6 @@ app.get("/get-ip", (req, res) => {
   res.json({ ip });
 });
 
-app.get('/merge-audio', (req, res) => {
-  const scriptPath = 'services/my-script.py';
-
-  exec(`python3 ${scriptPath}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Python execution error:', error);
-      console.error('STDERR:', stderr);
-      return res.status(500).send('Failed to run script');
-    }
-
-    console.log('STDOUT:', stdout);
-    // You don’t have to return anything
-    res.send('Script executed successfully');
-  });
-});
-
 app.get('/generate_plot', (req, res) => {
   const {
     lat1, lon1,
