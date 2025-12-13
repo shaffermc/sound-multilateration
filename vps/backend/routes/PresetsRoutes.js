@@ -31,6 +31,7 @@ router.delete('/:id', async (req, res) => {
 
 // POST /presets → create a new preset
 router.post('/', async (req, res) => {
+  console.log('PRESET BODY:', req.body);
   const { name, coords, times } = req.body;
 
   if (!name || !coords || !times || coords.length !== 4 || times.length !== 4) {
