@@ -5,7 +5,7 @@ from pymongo.errors import ConnectionFailure
 from pydub import AudioSegment
 
 # -------- CONFIG --------
-MONGO_URI = "mongodb://admin:adminpassword@209.46.124.94:27018/soundlocator?authSource=admin"
+MONGO_URI = "mongodb://admin:adminpassword@127.0.0.1:27018/soundlocator?authSource=admin"
 DB_NAME = "soundlocator"
 COLLECTION_NAME = "instructions"
 AUDIO_FOLDER = "/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files"
