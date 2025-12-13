@@ -27,6 +27,7 @@ export default function App() {
         </div>
         <RetrieveAudio />
         <RetrievalStatus />
+        <AudioFileList />
         <TDOAParameters
            stations={result?.stations || []}
            onResult={setResult}
@@ -35,7 +36,7 @@ export default function App() {
         <BandwidthDisplay />
         <AddInstruction />
         <InstructionsList />
-        <AudioFileList />
+
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}

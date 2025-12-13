@@ -6,7 +6,7 @@ const AudioFileList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch audio files from the backend API
+    // Function to fetch audio files from the backend API
     const fetchAudioFiles = async () => {
       try {
         const response = await fetch('http://209.46.124.94:3000/audio-files');
@@ -14,15 +14,45 @@ const AudioFileList = () => {
           throw new Error('Failed to fetch audio files');
         }
         const files = await response.json();
-        setAudioFiles(files);
+        return files;
       } catch (error) {
         setError(error.message);
+        return [];
+      }
+    };
+
+    // Polling function to periodically check for updates
+    const pollForUpdates = async () => {
+      try {
+        setLoading(true);
+        const newFiles = await fetchAudioFiles();
+
+        // If new files are different from the current state, update the state
+        setAudioFiles((prevFiles) => {
+          // Only update the table if there is a difference
+          if (JSON.stringify(prevFiles) !== JSON.stringify(newFiles)) {
+            return newFiles;
+          }
+          return prevFiles; // No changes, so return the current state
+        });
+      } catch (error) {
+        setError('Failed to fetch audio files');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAudioFiles();
+    // Initial fetch of audio files
+    pollForUpdates();
+
+    // Set up polling every 30 seconds
+    const intervalId = setInterval(() => {
+      pollForUpdates();
+    }, 30000); // Poll every 30 seconds
+
+    // Clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
+
   }, []);
 
   if (loading) {
@@ -42,15 +72,15 @@ const AudioFileList = () => {
         <table border="1">
           <thead>
             <tr>
-              <th >File Name</th>
-              <th >Download</th>
+              <th>File Name</th>
+              <th>Download</th>
             </tr>
           </thead>
           <tbody>
             {audioFiles.map((file, index) => (
               <tr key={index}>
-                <td >{file}</td>
-                <td >
+                <td>{file}</td>
+                <td>
                   <a href={`http://209.46.124.94:3000/audio/${file}`} download>
                     Download
                   </a>
