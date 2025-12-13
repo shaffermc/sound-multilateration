@@ -44,7 +44,8 @@ def merge_audio_files(file_prefix):
     return True
 
 def check_and_merge():
-    # Find all instructions of type 'sound_request' that are not yet marked all_complete
+     
+    print("Finding all instructions of type 'sound_request' that are not yet marked all_complete")
     instructions = instructions_collection.find({
         "instruction_type": "sound_request",
         "all_complete": False
@@ -58,6 +59,7 @@ def check_and_merge():
             instr.get("station4_complete", False)
         ]):
             # Try to merge
+            print("All files present, attempting merge.")
             success = merge_audio_files(instr["instruction_value"])
             if success:
                 # Mark as complete in DB
@@ -66,6 +68,9 @@ def check_and_merge():
                     {"$set": {"all_complete": True}}
                 )
                 print(f"Instruction {instr['_id']} marked as merged.")
+        else:
+            print("Not all files present to merge.")
+            
 
 if __name__ == "__main__":
     while True:
