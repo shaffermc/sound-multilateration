@@ -1,5 +1,5 @@
 [Unit]
-Description=Starts the Python script that checks for instructions from the main server.
+Description=Runs Python script that listens for requests from centralized server.
 After=network-online.target
 Wants=network-online.target
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=Runs Python script that uploads bandwidth usage to vps.                         
+Description=Runs Python script that uploads bandwidth usage statistics to centralized server.                       
 After=network-online.target
 Wants=network-online.target
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=Starts the Python script that records from USB microphone into segmented audio files. 
+Description=Runs Python script that records from a USB microphone into segmented audio files. 
 After=multi-user.target
 Wants=dev-snd-usb\x2dDevice.device
 
