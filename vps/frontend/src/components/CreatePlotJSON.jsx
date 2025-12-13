@@ -5,7 +5,6 @@ function CreatePlotJSON({ onResult }) {
   const [dbPresets, setDbPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [newPresetName, setNewPresetName] = useState("");
-  const [times, setTimes] = useState([0,0,0,0]);
 
   const [stations, setStations] = useState([
     { lat: 0, lon: 0 },

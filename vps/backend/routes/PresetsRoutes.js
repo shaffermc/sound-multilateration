@@ -32,9 +32,9 @@ router.delete('/:id', async (req, res) => {
 // POST /presets → create a new preset
 router.post('/', async (req, res) => {
   console.log('PRESET BODY:', req.body);
-  const { name, coords, times } = req.body;
+  const { name, coords } = req.body;
 
-  if (!name || !coords || !times || coords.length !== 4 || times.length !== 4) {
+  if (!name || !coords || coords.length !== 4) {
     return res.status(400).json({ error: 'Invalid data. Must include name, 4 coords, and 4 times.' });
   }
 
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
     // Upsert: if name exists, update; otherwise create
     const preset = await Preset.findOneAndUpdate(
       { name },
-      { coords, times },
+      { coords },
       { upsert: true, new: true, runValidators: true }
     );
 

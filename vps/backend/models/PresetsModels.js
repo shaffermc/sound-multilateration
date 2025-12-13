@@ -7,8 +7,11 @@ const StationSchema = new mongoose.Schema({
 
 const PresetSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
-  coords: { type: [StationSchema], required: true, validate: v => v.length === 4 },
-  times: { type: [Number], required: true, validate: v => v.length === 4 }
+  coords: { 
+    type: [StationSchema], 
+    required: true, 
+    validate: v => v.length === 4 // still enforce 4 coords
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Preset', PresetSchema);
