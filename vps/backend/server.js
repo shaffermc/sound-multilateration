@@ -19,7 +19,7 @@ app.use('/static', express.static(path.join(__dirname, 'static')));
 const MONGO_URI = process.env.MONGO_URI;
 mongoose.connect(MONGO_URI)
   .then(() => {
-    console.log('MongoDB connected');
+    console.log('MongoDB connected', mongoose.connection.name);
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
