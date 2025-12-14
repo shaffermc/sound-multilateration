@@ -63,13 +63,14 @@ const StationStatus = () => {
 
   return (
     <div>
+      System Status
       <table border="1">
         <thead>
           <tr>
             <th></th>
             {stationData.map((item, index) => {
               const station = item.status;
-              return <th key={station._id}>S{index + 1}</th>;
+              return <th key={station._id}>Station {index + 1}</th>;
             })}
           </tr>
         </thead>

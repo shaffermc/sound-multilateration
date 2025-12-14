@@ -162,6 +162,9 @@ app.get('/audio-files', (req, res) => {
   });
 });
 
+const esp32Routes = require('./routes/esp32Routes');
+app.use('/esp32', esp32Routes);
+
 const stationStatusRoutes = require('./routes/StationStatusRoutes');
 app.use('/stationStatus', stationStatusRoutes);
 
