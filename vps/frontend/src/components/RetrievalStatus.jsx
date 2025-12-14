@@ -82,7 +82,8 @@ const RetrievalStatus = () => {
         <tbody>
           {instructions.map((instruction) => (
             <tr key={instruction._id}>
-              <td>{instruction.instruction_value}</td>
+              <td style={{ backgroundColor: instruction.all_complete ? '#b6ffb6' : '#f85b5bff' }}>
+              <a href={`http://209.46.124.94:3000/audio/${instruction.instruction_value}_combined.wav`}>{instruction.instruction_value}</a></td>
               <td style={{ backgroundColor: instruction.station1_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station1_complete ? 'S1' : 'S1'}</td> {/* Display 'Yes' or 'No' */}
               <td style={{ backgroundColor: instruction.station2_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station2_complete ? 'S2' : 'S2'}</td> {/* Display 'Yes' or 'No' */}
               <td style={{ backgroundColor: instruction.station3_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station3_complete ? 'S3' : 'S3'}</td> {/* Display 'Yes' or 'No' */}
