@@ -11,11 +11,11 @@ const Esp32Dashboard = () => {
     const fetchLatest = async () => {
       try {
         // Fetch latest ESP32 event
-        const eventResponse = await axios.get('/api/esp32-events/latest');
+        const eventResponse = await axios.get('http://209.46.124.94:3000/esp32/esp32-events/latest');
         setLatestEvent(eventResponse.data);
 
         // Fetch latest ESP32 sensor data
-        const dataResponse = await axios.get('/api/esp32-data/latest');
+        const dataResponse = await axios.get('http://209.46.124.94:3000/esp32/esp32-data/latest');
         setLatestData(dataResponse.data);
 
         setLoading(false);
