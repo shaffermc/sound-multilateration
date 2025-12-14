@@ -12,6 +12,7 @@ import BandwidthDisplay from "./components/BandwidthDisplay";
 import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
+import Esp32Dashboard from "./components/ESP32Dashboard";
 
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <BandwidthDisplay />
         <AddInstruction />
         <InstructionsList />
+        <Esp32Dashboard />
 
       </div>
 
