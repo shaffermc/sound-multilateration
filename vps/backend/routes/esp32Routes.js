@@ -6,6 +6,7 @@ const esp32Event = require('../models/esp32Event'); // Model for ESP32 events
 // POST route to handle ESP32 data updates
 router.post('/add_esp32_data', async (req, res) => {
     try {
+        console.log('ESP32 data received:', req.body);
         const { esp32_location, esp32_name, esp32_sensor_type, esp32_sensor_reading, esp32_sensor_units } = req.body;
 
         if (!esp32_location || !esp32_name || !esp32_sensor_type || !esp32_sensor_reading || !esp32_sensor_units) {
@@ -34,6 +35,7 @@ router.post('/add_esp32_data', async (req, res) => {
 // POST route to handle ESP32 events (like Wi-Fi status or system uptime)
 router.post('/add_esp32_event', async (req, res) => {
     try {
+        console.log('ESP32 data received:', req.body);
         const { esp32_location, esp32_name, esp32_event_type, esp32_event_value, esp32_event_units } = req.body;
 
         if (!esp32_location || !esp32_name || !esp32_event_type || !esp32_event_value || !esp32_event_units) {
