@@ -11,6 +11,7 @@ const PresetsRoutes = require('./routes/PresetsRoutes')
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (like the generated plot)
 app.use('/static', express.static(path.join(__dirname, 'static')));

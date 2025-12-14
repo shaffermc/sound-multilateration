@@ -36,8 +36,8 @@ void loop() {
   
   String wifiUptimeToSend = updateWiFiConnectedTimeString();
   String esp32UptimeToSend = updateUptimeString();
-  sendSensorEventData("ESP32-06", "Wifi Uptime", wifiUptimeToSend, "Time");
-  sendSensorEventData("ESP32-06", "System Uptime", esp32UptimeToSend, "Time");
+  sendEventData("Station 1", "ESP32-06", "Wifi Uptime", wifiUptimeToSend, "Time");
+  sendEventData("Station 1", "ESP32-06", "System Uptime", esp32UptimeToSend, "Time");
 
   // Read temperature from BMP180
   float BMP180_temp_C = bmp.readTemperature(); // Temperature in Celsius
@@ -76,14 +76,14 @@ void loop() {
   }
 }
 
-void sendSensorEventData(String sensor_location, String sensor_event_type, String sensor_event_value, String sensor_event_units) {
-  String data = "&esp32_sensor_location=" + sensor_location + "&esp32_sensor_event_type=" + sensor_event_type + "&esp32_sensor_event_value=" + sensor_event_value +"&esp32_sensor_event_units=" + sensor_event_units;
+void sendEventData(String esp32_location, String esp32_name, String esp32_event_type, String esp32_event_value, String esp32_event_units) {
+  String data = "esp32_location=" + esp32_location + "&esp32_name=" + esp32_name + "&esp32_event_type=" + esp32_event_type + "&esp32_event_value=" + esp32_event_value +"&esp32_event_units=" + esp32_event_units;
   Serial.println(data);
   sendPostRequestSensorEvent(data);
 }
 
-void sendData(String sensor_location, String sensor_name, String sensor_type, String sensor_reading, String sensor_units) {
-  String data = "&esp32_location=" + sensor_location + "&esp32_name=" + sensor_name + "&esp32_sensor_type=" + esp32_sensor_type + "&esp32_sensor_reading=" + esp32_sensor_reading + "&esp32_sensor_units=" + esp32_sensor_units;
+void sendData(String esp32_location, String esp32_name, String esp32_sensor_type, String esp32_sensor_reading, String esp32_sensor_units) {
+  String data = "esp32_location=" + esp32_location + "&esp32_name=" + esp32_name + "&esp32_sensor_type=" + esp32_sensor_type + "&esp32_sensor_reading=" + esp32_sensor_reading + "&esp32_sensor_units=" + esp32_sensor_units;
   Serial.println(data);
   sendPostRequest(data);
 }
@@ -91,7 +91,7 @@ void sendData(String sensor_location, String sensor_name, String sensor_type, St
 void sendPostRequest(String data) {
   HTTPClient http;
   
-  if (http.begin(ipAddress, 3000, "/esp32/update_sensor_data")) { // Begin the HTTP POST request with the provided IP and port
+  if (http.begin(ipAddress, 3000, "/esp32/add_esp32_data")) { // Begin the HTTP POST request with the provided IP and port
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
     int httpResponseCode = http.POST(data); // Send the POST request with the data
@@ -115,7 +115,7 @@ void sendPostRequest(String data) {
 void sendPostRequestSensorEvent(String data) {
   HTTPClient http;
   
-  if (http.begin(ipAddress.c_str(), 3000, "/add_sensor_event")) { // Begin the HTTP POST request with the provided IP and port
+  if (http.begin(ipAddress.c_str(), 3000, "/esp32/add_esp32_event")) { // Begin the HTTP POST request with the provided IP and port
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
     int httpResponseCode = http.POST(data); // Send the POST request with the data
