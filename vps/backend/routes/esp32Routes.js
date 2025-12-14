@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const ESP32Data = require('../models/esp32Data'); // Model for ESP32 data
-const ESP32Event = require('../models/esp32Event'); // Model for ESP32 events
+const esp32Data = require('../models/esp32Data'); // Model for ESP32 data
+const esp32Event = require('../models/esp32Event'); // Model for ESP32 events
 
 // POST route to handle ESP32 data updates
-router.post('/update_esp32_data', async (req, res) => {
+router.post('/add_esp32_data', async (req, res) => {
     try {
-        const { esp32_location, esp32_name, esp32_type, esp32_reading, esp32_units } = req.body;
+        const { esp32_location, esp32_name, esp32_sensor_type, esp32_sensor_reading, esp32_sensor_units } = req.body;
 
-        if (!esp32_location || !esp32_name || !esp32_type || !esp32_reading || !esp32_units) {
+        if (!esp32_location || !esp32_name || !esp32_sensor_type || !esp32_sensor_reading || !esp32_sensor_units) {
             return res.status(400).send('Missing required fields');
         }
 
@@ -16,9 +16,9 @@ router.post('/update_esp32_data', async (req, res) => {
         const newESP32Data = new ESP32Data({
             esp32_location,
             esp32_name,
-            esp32_type,
-            esp32_reading,
-            esp32_units
+            esp32_sensor_type,
+            esp32_sensor_reading,
+            esp32_sensor_units
         });
 
         // Save to the database (optional, but useful for logging)
@@ -34,15 +34,16 @@ router.post('/update_esp32_data', async (req, res) => {
 // POST route to handle ESP32 events (like Wi-Fi status or system uptime)
 router.post('/add_esp32_event', async (req, res) => {
     try {
-        const { esp32_location, esp32_event_type, esp32_event_value, esp32_event_units } = req.body;
+        const { esp32_location, esp32_name, esp32_event_type, esp32_event_value, esp32_event_units } = req.body;
 
-        if (!esp32_location || !esp32_event_type || !esp32_event_value || !esp32_event_units) {
+        if (!esp32_location || !esp32_name || !esp32_event_type || !esp32_event_value || !esp32_event_units) {
             return res.status(400).send('Missing required fields');
         }
 
         // Create a new ESP32Event entry
         const newESP32Event = new ESP32Event({
             esp32_location,
+            esp32_name,
             esp32_event_type,
             esp32_event_value,
             esp32_event_units

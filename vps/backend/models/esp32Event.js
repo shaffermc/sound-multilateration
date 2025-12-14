@@ -6,6 +6,10 @@ const esp32EventSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    esp32_name: {
+        type: String,
+        required: true
+    },
     esp32_event_type: {
         type: String,
         required: true
@@ -25,6 +29,6 @@ const esp32EventSchema = new mongoose.Schema({
 });
 
 // Create the model for ESP32Event
-const ESP32Event = mongoose.model('ESP32Event', esp32EventSchema);
+const esp32Event = mongoose.model('esp32Event', esp32EventSchema);
 
-module.exports = ESP32Event;
+module.exports = esp32Event;

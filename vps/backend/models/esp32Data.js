@@ -1,5 +1,3 @@
-// models/esp32Data.js
-
 const mongoose = require('mongoose');
 
 // Define the schema for ESP32 data
@@ -12,15 +10,15 @@ const esp32DataSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    esp32_type: {
+    esp32_sensor_type: {
         type: String,
         required: true
     },
-    esp32_reading: {
+    esp32_sensor_reading: {
         type: String,
         required: true
     },
-    esp32_units: {
+    esp32_sensor_units: {
         type: String,
         required: true
     },
@@ -31,6 +29,6 @@ const esp32DataSchema = new mongoose.Schema({
 });
 
 // Create the model for ESP32Data
-const ESP32Data = mongoose.model('ESP32Data', esp32DataSchema);
+const esp32Data = mongoose.model('esp32Data', esp32DataSchema);
 
-module.exports = ESP32Data;
+module.exports = esp32Data;

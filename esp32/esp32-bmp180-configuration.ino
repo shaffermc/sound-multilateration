@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
 #include <HTTPClient.h>
+#include <WiFi.h>
 
 Adafruit_BMP085 bmp; // Initialize BMP180 sensor on D23 (SDA) and D22 (SCL)
 
@@ -76,13 +77,13 @@ void loop() {
 }
 
 void sendSensorEventData(String sensor_location, String sensor_event_type, String sensor_event_value, String sensor_event_units) {
-  String data = "&sensor_location=" + sensor_location + "&sensor_event_type=" + sensor_event_type + "&sensor_event_value=" + sensor_event_value +"&sensor_event_units=" + sensor_event_units;
+  String data = "&esp32_sensor_location=" + sensor_location + "&esp32_sensor_event_type=" + sensor_event_type + "&esp32_sensor_event_value=" + sensor_event_value +"&esp32_sensor_event_units=" + sensor_event_units;
   Serial.println(data);
   sendPostRequestSensorEvent(data);
 }
 
 void sendData(String sensor_location, String sensor_name, String sensor_type, String sensor_reading, String sensor_units) {
-  String data = "&sensor_location=" + sensor_location + "&sensor_name=" + sensor_name + "&sensor_type=" + sensor_type + "&sensor_reading=" + sensor_reading + "&sensor_units=" + sensor_units;
+  String data = "&esp32_location=" + sensor_location + "&esp32_name=" + sensor_name + "&esp32_sensor_type=" + esp32_sensor_type + "&esp32_sensor_reading=" + esp32_sensor_reading + "&esp32_sensor_units=" + esp32_sensor_units;
   Serial.println(data);
   sendPostRequest(data);
 }
@@ -90,7 +91,7 @@ void sendData(String sensor_location, String sensor_name, String sensor_type, St
 void sendPostRequest(String data) {
   HTTPClient http;
   
-  if (http.begin(ipAddress, 3000, "/update_sensor_data")) { // Begin the HTTP POST request with the provided IP and port
+  if (http.begin(ipAddress, 3000, "/esp32/update_sensor_data")) { // Begin the HTTP POST request with the provided IP and port
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
     int httpResponseCode = http.POST(data); // Send the POST request with the data
