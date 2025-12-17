@@ -28,17 +28,47 @@ export default function App() {
 
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
-        <div style={{ textAlign: "center" }}><img src={TitlePNG} alt="Title" style={{ width: 299, marginBottom: 4 }} /></div>
-        <div style={{ textAlign: "center" }}><img src={ListeningStationCoordinates} alt="Listening Station Coordinates" style={{ width: 193, marginBottom: 4 }} /></div>
+        <div style={{ textAlign: "center" }}><img src={TitlePNG} alt="Title" style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }} /></div>
+        <div style={{ textAlign: "center" }}><img src={ListeningStationCoordinates} alt="Listening Station Coordinates" style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }}/></div>
         <div><CreatePlotJSON onResult={setResult} /></div>
-        <div style={{ textAlign: "center" }}><img src={DateTimeOfSound} alt="Date and Time of Sound" style={{ width: 151, marginBottom: 4 }} /></div>
+        <div style={{ textAlign: "center" }}><img src={DateTimeOfSound} alt="Date and Time of Sound" style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }} /></div>
         <RetrieveAudio />
         <RetrievalStatus />
-        <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging" style={{ width: 147, marginBottom: 4 }} /></div>
+        <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging"style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }} /></div>
         <AudioFileList />
-        <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets" style={{ width: 195, marginBottom: 4 }} /></div>
+        <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets"style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }} /></div>
         <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-        <div style={{ textAlign: "center" }}><img src={EnterTimeDelayOffsetes} alt="Enter Time Delays Offsets" style={{ width: 174, marginBottom: 4 }} /></div>
+        <div style={{ textAlign: "center" }}><img src={EnterTimeDelayOffsetes} alt="Enter Time Delays Offsets" style={{
+    width: "100%",
+    maxWidth: "280px",
+    height: "auto",
+    marginBottom: 4,
+  }} /></div>
 
         <TDOAParameters
            stations={result?.stations || []}
@@ -71,6 +101,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
+    minWidth: "260px",           // ✅ prevents crushing
+    maxWidth: "340px",           // ✅ prevents overflow growth
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -78,8 +110,10 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
+    overflowX: "hidden",         // ✅ KEY LINE
     borderRight: "2px solid #ddd",
   },
+
   mapContainer: {
     width: "80%",
     height: "100%",
