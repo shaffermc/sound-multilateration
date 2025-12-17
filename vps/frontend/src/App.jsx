@@ -22,7 +22,7 @@ export default function App() {
 
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
-        <div style={titleStyle}>Sound Source Locating System</div>
+        <div style={titleStyle}>Sound Source Locator</div>
         <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
         <div><CreatePlotJSON onResult={setResult} /></div>
         <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
