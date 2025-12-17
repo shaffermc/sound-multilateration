@@ -18,7 +18,7 @@ function CreatePlotJSON({ onResult }) {
   // -------------------------
   const loadPresets = async () => {
     try {
-      const res = await fetch('/presets');
+      const res = await fetch('/sound-locator/api/presets');
       const data = await res.json();
       setDbPresets(data);
     } catch (err) {
@@ -70,7 +70,7 @@ function CreatePlotJSON({ onResult }) {
     }
 
     try {
-      await fetch(`/presets`, {
+      await fetch(`/sound-locator/api/presets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,7 +92,7 @@ function CreatePlotJSON({ onResult }) {
     if (!window.confirm("Delete this preset?")) return;
 
     try {
-      await fetch(`/presets/${selectedPresetId}`, {
+      await fetch(`/sound-locator/api/presets/${selectedPresetId}`, {
         method: "DELETE"
       });
 

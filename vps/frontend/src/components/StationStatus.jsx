@@ -23,7 +23,7 @@ const StationStatus = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `/stationStatus/get_station_status`
+          `/sound-locator/api/stationStatus/get_station_status`
         );
         const data = await response.json();
 

@@ -12,7 +12,7 @@ const BandwidthDisplay = () => {
   const fetchBandwidthData = async () => {
     try {
       const response = await axios.get(
-          `/bandwidth/usage?station_id=${stationNames.join(',')}`
+          `/sound-locator/api/bandwidth/usage?station_id=${stationNames.join(',')}`
       );
       const data = response.data;
 
