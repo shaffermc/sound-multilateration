@@ -51,10 +51,15 @@ const RetrieveAudio = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+
+    <div style={{
+    padding: "1px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'top', gap: '2px' }}>
         <div>
-            <label>Select Time of Sound:</label>
             <DatePicker
             selected={instructionValue}
             onChange={handleDateChange}
@@ -64,8 +69,7 @@ const RetrieveAudio = () => {
             required
             />
         </div>
-        
-      <button type="submit">Retrieve</button>
+      <button type="submit">Submit</button>
       </form>
     </div>
   );

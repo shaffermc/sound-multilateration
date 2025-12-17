@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ComputeAndPlotSoundSource from "../assets/6.png"
 
 export default function TDOAParameters({ stations, onResult }) {
   const [times, setTimes] = useState([0, 0, 0, 0]);
@@ -28,10 +29,8 @@ export default function TDOAParameters({ stations, onResult }) {
   };
 
   return (
-    <div style={{ padding: "10px" }}>
-      <h4>Time Delays</h4>
-
-      <div style={{ display: "flex", gap: "15px", marginBottom: "15px" }}>
+    <div style={{ padding: "1px" }}>
+      <div style={{ display: "flex", gap: "1px", marginBottom: "1px" }}>
         {times.map((t, i) => (
           <div key={i}>
             <strong>t{String.fromCharCode(65 + i)}:</strong>
@@ -45,17 +44,20 @@ export default function TDOAParameters({ stations, onResult }) {
           </div>
         ))}
       </div>
-
+     <div style={{ textAlign: "center" }}><img src={ComputeAndPlotSoundSource} alt="Compute and Plot Sound Source" style={{ width: 216, marginBottom: 4 }} /></div>
+     <div style={{ textAlign: "center" }}>
       <button
         onClick={fetchJSON}
         style={{
           fontSize: "16px",
           padding: "6px 10px",
-          backgroundColor: "#b6ffb6",
+          color: "#000000ff",
+          backgroundColor: "#f7f7f7ff",
         }}
-      >
-        Plot Solution
+        >
+        Plot Location on Map
       </button>
+     </div>
     </div>
   );
 }

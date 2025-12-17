@@ -107,14 +107,19 @@ function CreatePlotJSON({ onResult }) {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{
+    padding: "1px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    }}>
 
       <select
         value={selectedPresetId}
         onChange={handlePresetChange}
-        style={{ width: "100%", marginBottom: "15px" }}
-      >
-        <option value="">-- Select Area --</option>
+        style={{ width: "80%", marginBottom: "5px" }}
+      > 
+        <option value="">-- Load Coordinate Preset --</option>
         {dbPresets.map(p => (
           <option key={p._id} value={p._id}>{p.name}</option>
         ))}
@@ -151,7 +156,7 @@ function CreatePlotJSON({ onResult }) {
           type="text"
           value={newPresetName}
           onChange={e => setNewPresetName(e.target.value)}
-          placeholder="Preset Name"
+          placeholder="Save Preset Name"
         />
 
         <button onClick={savePreset}>Save</button>
