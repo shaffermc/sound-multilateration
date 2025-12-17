@@ -13,12 +13,6 @@ import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
 import Esp32Dashboard from "./components/ESP32Dashboard";
-import TitlePNG from "./assets/title.png";
-import ListeningStationCoordinates from "./assets/1.png"
-import DateTimeOfSound from "./assets/2.png"
-import AudioFileMerging from "./assets/3.png"
-import MeasureTimeDelayOffsets from "./assets/4.png"
-import EnterTimeDelayOffsetes from "./assets/5.png"
 
 export default function App() {
   const [result, setResult] = useState(null);
