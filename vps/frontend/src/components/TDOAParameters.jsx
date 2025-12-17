@@ -19,7 +19,7 @@ export default function TDOAParameters({ stations, onResult }) {
     ].join("&");
 
     try {
-      const res = await fetch(`/api/generate_plot_json?${query}`);
+      const res = await fetch(`/generate_plot_json?${query}`);
       const data = await res.json();
       onResult(data);
     } catch (err) {

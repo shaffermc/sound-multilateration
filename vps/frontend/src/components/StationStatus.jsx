@@ -23,7 +23,7 @@ const StationStatus = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `/api/stationStatus/get_station_status`
+          `/stationStatus/get_station_status`
         );
         const data = await response.json();
 

@@ -41,7 +41,7 @@ const RetrieveAudio = () => {
     };
 
     try {
-      const response = await axios.post(`/api/instructions/add_instructions`, newInstruction);
+      const response = await axios.post(`/instructions/add_instructions`, newInstruction);
       setInstructionValue(null); // Reset to null
       //window.location.reload();
 

@@ -9,7 +9,7 @@ const AudioFileList = () => {
     // Function to fetch audio files from the backend API
     const fetchAudioFiles = async () => {
       try {
-        const response = await fetch('/api/audio-files');
+        const response = await fetch('/audio-files');
         if (!response.ok) {
           throw new Error('Failed to fetch audio files');
         }
@@ -81,7 +81,7 @@ const AudioFileList = () => {
               <tr key={index}>
                 <td>{file}</td>
                 <td>
-                  <a href={`${API_BASE}/api/audio/${file}`} download>
+                  <a href={`${API_BASE}/audio/${file}`} download>
                     Download
                   </a>
                 </td>
