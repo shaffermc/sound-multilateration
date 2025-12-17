@@ -27,11 +27,11 @@ mongoose.connect(MONGO_URI)
   });
 
 
-app.get('/', (req, res) => {
+app.get('/api/', (req, res) => {
   res.send('Sensor Data Logger API');
 });
 
-app.get("/generate_plot_json", (req, res) => {
+app.get("/api/generate_plot_json", (req, res) => {
   const q = req.query;
 
   // Validate that all parameters exist
@@ -90,9 +90,9 @@ app.get("/generate_plot_json", (req, res) => {
 });
 
 // Routes
-app.use('/presets', PresetsRoutes);
+app.use('/api/presets', PresetsRoutes);
 
-app.get("/get-ip", (req, res) => {
+app.get("/api/get-ip", (req, res) => {
   let ip =
     req.headers["x-forwarded-for"]?.split(",")[0] ||
     req.socket.remoteAddress;
@@ -103,7 +103,7 @@ app.get("/get-ip", (req, res) => {
   res.json({ ip });
 });
 
-app.get('/generate_plot', (req, res) => {
+app.get('/api/generate_plot', (req, res) => {
   const {
     lat1, lon1,
     lat2, lon2,
@@ -147,9 +147,9 @@ app.get('/generate_plot', (req, res) => {
 });
 
 const audioDirectory = '/home/mshaffer/www/sound-multilateration/vps/backend/services/merged_audio'; 
-app.use('/audio', express.static(audioDirectory));
+app.use('/api/audio', express.static(audioDirectory));
 
-app.get('/audio-files', (req, res) => {
+app.get('/api/audio-files', (req, res) => {
   fs.readdir(audioDirectory, (err, files) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to read directory' });
@@ -164,16 +164,16 @@ app.get('/audio-files', (req, res) => {
 });
 
 const esp32Routes = require('./routes/esp32Routes');
-app.use('/esp32', esp32Routes);
+app.use('/api/esp32', esp32Routes);
 
 const stationStatusRoutes = require('./routes/StationStatusRoutes');
-app.use('/stationStatus', stationStatusRoutes);
+app.use('/api/stationStatus', stationStatusRoutes);
 
 const InstructionsRoutes = require('./routes/InstructionsRoutes');
-app.use('/instructions', InstructionsRoutes);
+app.use('/api/instructions', InstructionsRoutes);
 
 const BandwidthUsageRoutes = require('./routes/BandwidthUsageRoutes');  
-app.use('/bandwidth', BandwidthUsageRoutes); 
+app.use('/api/bandwidth', BandwidthUsageRoutes); 
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

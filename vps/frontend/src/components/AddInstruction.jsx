@@ -58,7 +58,7 @@ const AddInstruction = () => {
     };
 
     try {
-      const response = await axios.post('/instructions/add_instructions', newInstruction);
+      const response = await axios.post('/api/instructions/add_instructions', newInstruction);
       setMessage('Instruction added successfully!');
       // Clear the form after submission
       setInstructionType('');
