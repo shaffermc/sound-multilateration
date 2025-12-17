@@ -55,7 +55,7 @@ const RetrievalStatus = () => {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', padding: '2px' }}>Instruction</th>
+            <th style={{ textAlign: 'left', padding: '2px' }}>Date/Time</th>
             <th style={{ padding: '2px' }}>S1</th>
             <th style={{ padding: '2px' }}>S2</th>
             <th style={{ padding: '2px' }}>S3</th>
