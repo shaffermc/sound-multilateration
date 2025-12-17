@@ -21,7 +21,8 @@ export default function App() {
     <div style={styles.container}>
 
       {/* LEFT SIDEBAR (20%) */}
-     <div style={sectionHeaderStyle}>Sound Source Locating System</div>
+      <div style={styles.sidebar}>
+        <div style={sectionHeaderStyle}>Sound Source Locating System</div>
         <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
         <div><CreatePlotJSON onResult={setResult} /></div>
         <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
@@ -29,22 +30,16 @@ export default function App() {
         <RetrievalStatus />
         <div style={sectionHeaderStyle}>Audio File Merging</div>
         <AudioFileList />
-      <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
+        <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
         <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-       <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
-       <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
-       <div>
-        <TDOAParameters
-           stations={result?.stations || []}
-           onResult={setResult}
-           />
-          {/*}
-        <StationStatus />
-        <BandwidthDisplay />
-        <AddInstruction />
-        <InstructionsList />
-        <Esp32Dashboard />
-        */}
+        <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
+        <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
+        <div>
+          <TDOAParameters
+            stations={result?.stations || []}
+            onResult={setResult}
+          />
+        </div>
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
