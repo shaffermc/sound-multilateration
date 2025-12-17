@@ -33,8 +33,8 @@ export default function App() {
         <div><CreatePlotJSON onResult={setResult} /></div>
         <div style={{ textAlign: "center" }}><img src={DateTimeOfSound} alt="Date and Time of Sound" style={{ width: 151, marginBottom: 4 }} /></div>
         <RetrieveAudio />
-        <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging" style={{ width: 147, marginBottom: 4 }} /></div>
         <RetrievalStatus />
+        <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging" style={{ width: 147, marginBottom: 4 }} /></div>
         <AudioFileList />
         <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets" style={{ width: 195, marginBottom: 4 }} /></div>
         <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
