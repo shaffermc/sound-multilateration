@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const AddInstruction = () => {
   const [instructionType, setInstructionType] = useState('');
@@ -59,7 +58,7 @@ const AddInstruction = () => {
     };
 
     try {
-      const response = await axios.post(`${API_BASE}/instructions/add_instructions`, newInstruction);
+      const response = await axios.post('/instructions/add_instructions', newInstruction);
       setMessage('Instruction added successfully!');
       // Clear the form after submission
       setInstructionType('');

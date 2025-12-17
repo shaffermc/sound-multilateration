@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const AudioFileList = () => {
   const [audioFiles, setAudioFiles] = useState([]);
@@ -10,7 +9,7 @@ const AudioFileList = () => {
     // Function to fetch audio files from the backend API
     const fetchAudioFiles = async () => {
       try {
-        const response = await fetch(`${API_BASE}/audio-files`);
+        const response = await fetch('/audio-files');
         if (!response.ok) {
           throw new Error('Failed to fetch audio files');
         }

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const RetrieveAudio = () => {
   const [instructionValue, setInstructionValue] = useState(null); // Store as Date object
@@ -42,7 +41,7 @@ const RetrieveAudio = () => {
     };
 
     try {
-      const response = await axios.post(`${API_BASE}/instructions/add_instructions`, newInstruction);
+      const response = await axios.post(`/instructions/add_instructions`, newInstruction);
       setInstructionValue(null); // Reset to null
       //window.location.reload();
 

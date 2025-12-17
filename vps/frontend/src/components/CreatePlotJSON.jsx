@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function CreatePlotJSON({ onResult }) {
 
@@ -19,7 +18,7 @@ function CreatePlotJSON({ onResult }) {
   // -------------------------
   const loadPresets = async () => {
     try {
-      const res = await fetch(`${API_BASE}/presets`);
+      const res = await fetch('/presets');
       const data = await res.json();
       setDbPresets(data);
     } catch (err) {
@@ -71,7 +70,7 @@ function CreatePlotJSON({ onResult }) {
     }
 
     try {
-      await fetch(`${API_BASE}/presets`, {
+      await fetch(`/presets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -93,7 +92,7 @@ function CreatePlotJSON({ onResult }) {
     if (!window.confirm("Delete this preset?")) return;
 
     try {
-      await fetch(`${API_BASE}/presets/${selectedPresetId}`, {
+      await fetch(`/presets/${selectedPresetId}`, {
         method: "DELETE"
       });
 

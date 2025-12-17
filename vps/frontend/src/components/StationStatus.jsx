@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const StationStatus = () => {
   const [stationData, setStationData] = useState([]);  
@@ -24,7 +23,7 @@ const StationStatus = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_BASE}/stationStatus/get_station_status`
+          `/stationStatus/get_station_status`
         );
         const data = await response.json();
 
