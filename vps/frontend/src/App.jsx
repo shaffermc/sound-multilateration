@@ -27,49 +27,19 @@ export default function App() {
     <div style={styles.container}>
 
       {/* LEFT SIDEBAR (20%) */}
-      <div style={styles.sidebar}>
-        <div style={{ textAlign: "center" }}><img src={TitlePNG} alt="Title" style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }} /></div>
-        <div style={{ textAlign: "center" }}><img src={ListeningStationCoordinates} alt="Listening Station Coordinates" style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }}/></div>
+     <div style={sectionHeaderStyle}>Sound Source Locating System</div>
+        <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
         <div><CreatePlotJSON onResult={setResult} /></div>
-        <div style={{ textAlign: "center" }}><img src={DateTimeOfSound} alt="Date and Time of Sound" style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }} /></div>
+        <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
         <RetrieveAudio />
         <RetrievalStatus />
-        <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging"style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }} /></div>
+        <div style={sectionHeaderStyle}>Audio File Merging</div>
         <AudioFileList />
-        <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets"style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }} /></div>
+      <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
         <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-        <div style={{ textAlign: "center" }}><img src={EnterTimeDelayOffsetes} alt="Enter Time Delays Offsets" style={{
-    width: "100%",
-    maxWidth: "280px",
-    height: "auto",
-    marginBottom: 4,
-  }} /></div>
-
+       <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
+       <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
+       <div>
         <TDOAParameters
            stations={result?.stations || []}
            onResult={setResult}
@@ -118,4 +88,19 @@ const styles = {
     width: "80%",
     height: "100%",
   },
+
+  
+};
+
+const sectionHeaderStyle = {
+  width: "100%",
+  maxWidth: "260px",
+  textAlign: "center",
+  fontSize: "13px",
+  fontWeight: "600",
+  letterSpacing: "0.5px",
+  color: "#333",
+  margin: "8px auto 4px auto",
+  paddingBottom: "4px",
+  borderBottom: "1px solid #ddd",
 };

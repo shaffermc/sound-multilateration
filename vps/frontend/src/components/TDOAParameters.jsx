@@ -44,8 +44,8 @@ export default function TDOAParameters({ stations, onResult }) {
           </div>
         ))}
       </div>
-     <div style={{ textAlign: "center" }}><img src={ComputeAndPlotSoundSource} alt="Compute and Plot Sound Source" style={{ width: 216, marginBottom: 4 }} /></div>
-     <div style={{ textAlign: "center" }}>
+      <div style={sectionHeaderStyle}>Compute and Plot Sound Location:</div>
+      <div style={{ textAlign: "center" }}>
       <button
         onClick={fetchJSON}
         style={{
@@ -60,4 +60,17 @@ export default function TDOAParameters({ stations, onResult }) {
      </div>
     </div>
   );
+
 }
+const sectionHeaderStyle = {
+  width: "100%",
+  maxWidth: "260px",
+  textAlign: "center",
+  fontSize: "13px",
+  fontWeight: "600",
+  letterSpacing: "0.5px",
+  color: "#333",
+  margin: "8px auto 4px auto",
+  paddingBottom: "4px",
+  borderBottom: "1px solid #ddd",
+};
