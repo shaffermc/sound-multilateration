@@ -5,96 +5,92 @@ const RetrievalStatus = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Function to fetch instructions
   const fetchInstructions = async () => {
-    setLoading(true); // Set loading to true before fetching
+    setLoading(true);
     try {
       const response = await fetch(`/sound-locator/api/instructions/get_instructions`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch instructions');
-      }
+      if (!response.ok) throw new Error('Failed to fetch instructions');
       const data = await response.json();
-
-      // Limit to the last 10 filtered entries
       setInstructions(data.slice(-10).reverse());
       setLoading(false);
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      setError(err.message);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInstructions(); // initial load
-
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(
-          `/sound-locator/api/instructions/get_instructions`
-        );
-        const data = await response.json();
-        const newest = data.slice(-10).reverse();
-
-        // Only update if data changed
-        setInstructions(prev => {
-          return JSON.stringify(prev) !== JSON.stringify(newest)
-            ? newest
-            : prev;
-        });
-
-      } catch (err) {
-        console.error("Background update failed", err);
-      }
-    }, 2000);
-
+    fetchInstructions();
+    const interval = setInterval(fetchInstructions, 2000);
     return () => clearInterval(interval);
-  }, []); 
-
+  }, []);
 
   const handleDelete = async (id) => {
     try {
       const response = await fetch(`/sound-locator/api/instructions/delete_instructions/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) {
-        throw new Error('Failed to delete instruction');
-      }
-      // After successful deletion, refetch instructions
-      //fetchInstructions();
-    } catch (error) {
-      console.error('Error deleting instruction:', error);
+      if (!response.ok) throw new Error('Failed to delete instruction');
+      fetchInstructions();
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  if (loading) {
-    return <div>Loading instructions...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading instructions...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div>
-      <table border="1">
-        <thead>
-        </thead>
-        <tbody>
-          {instructions.map((instruction) => (
-            <tr key={instruction._id}>
-              <td style={{ backgroundColor: instruction.all_complete ? '#b6ffb6' : '#f85b5bff' }}>
-              <a href={`/sound-locator/api/audio/${instruction.instruction_value}_combined.wav`}>{instruction.instruction_value}</a></td>
-              <td style={{ backgroundColor: instruction.station1_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station1_complete ? 'S1' : 'S1'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={{ backgroundColor: instruction.station2_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station2_complete ? 'S2' : 'S2'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={{ backgroundColor: instruction.station3_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station3_complete ? 'S3' : 'S3'}</td> {/* Display 'Yes' or 'No' */}
-              <td style={{ backgroundColor: instruction.station4_complete ? '#b6ffb6' : '#f85b5bff' }}>{instruction.station4_complete ? 'S4' : 'S4'}</td> {/* Display 'Yes' or 'No' */}
-              <td >
-                <button onClick={() => handleDelete(instruction._id)}>DEL</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+      <div style={{ textAlign: 'center', fontWeight: 600, fontSize: '13px', color: '#333', marginBottom: '6px' }}>
+        Retrieval Status
+      </div>
+
+      {instructions.length === 0 ? (
+        <div style={{ textAlign: 'center', fontSize: '12px', color: '#555' }}>No instructions yet.</div>
+      ) : (
+        instructions.map((inst) => (
+          <div
+            key={inst._id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '12px',
+              padding: '4px',
+              backgroundColor: inst.all_complete ? '#b6ffb6' : '#f85b5bff',
+              borderRadius: '4px',
+            }}
+          >
+            <a
+              href={`/sound-locator/api/audio/${inst.instruction_value}_combined.wav`}
+              style={{ color: '#000', textDecoration: 'none', flex: 1 }}
+            >
+              {inst.instruction_value}
+            </a>
+            <div style={{ display: 'flex', gap: '2px', marginLeft: '4px' }}>
+              <span style={{ color: inst.station1_complete ? '#0a0' : '#a00' }}>S1</span>
+              <span style={{ color: inst.station2_complete ? '#0a0' : '#a00' }}>S2</span>
+              <span style={{ color: inst.station3_complete ? '#0a0' : '#a00' }}>S3</span>
+              <span style={{ color: inst.station4_complete ? '#0a0' : '#a00' }}>S4</span>
+            </div>
+            <button
+              onClick={() => handleDelete(inst._id)}
+              style={{
+                marginLeft: '4px',
+                padding: '2px 6px',
+                fontSize: '10px',
+                backgroundColor: '#ddd',
+                border: '1px solid #aaa',
+                borderRadius: '3px',
+                cursor: 'pointer',
+              }}
+            >
+              DEL
+            </button>
+          </div>
+        ))
+      )}
     </div>
   );
 };
