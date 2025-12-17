@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const BandwidthDisplay = () => {
   const [bandwidthData, setBandwidthData] = useState(null);
@@ -12,7 +13,7 @@ const BandwidthDisplay = () => {
   const fetchBandwidthData = async () => {
     try {
       const response = await axios.get(
-        `http://209.46.124.94:3000/bandwidth/usage?station_id=${stationNames.join(',')}`
+        `${API_BASE}/bandwidth/usage?station_id=${stationNames.join(',')}`
       );
       const data = response.data;
 

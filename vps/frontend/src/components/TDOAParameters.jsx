@@ -1,4 +1,5 @@
 import { useState } from "react";
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 export default function TDOAParameters({ stations, onResult }) {
   const [times, setTimes] = useState([0, 0, 0, 0]);
@@ -19,7 +20,7 @@ export default function TDOAParameters({ stations, onResult }) {
     ].join("&");
 
     try {
-      const res = await fetch(`http://209.46.124.94:3000/generate_plot_json?${query}`);
+      const res = await fetch(`${API_BASE}/generate_plot_json?${query}`);
       const data = await res.json();
       onResult(data);
     } catch (err) {

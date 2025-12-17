@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 function CreatePlotLocal() {
 
@@ -62,7 +63,7 @@ function CreatePlotLocal() {
     ].join('&');
 
     try {
-      const response = await fetch(`http://209.46.124.94:3000/generate_plot?${query}`);
+      const response = await fetch(`${API_BASE}/generate_plot?${query}`);
       if (!response.ok) throw new Error('Plot generation failed');
       const data = await response.json();
       setImageUrl(`data:image/png;base64,${data.image}`);

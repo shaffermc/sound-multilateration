@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 const RetrievalStatus = () => {
   const [instructions, setInstructions] = useState([]);
@@ -9,7 +10,7 @@ const RetrievalStatus = () => {
   const fetchInstructions = async () => {
     setLoading(true); // Set loading to true before fetching
     try {
-      const response = await fetch('http://209.46.124.94:3000/instructions/get_instructions');
+      const response = await fetch(`${API_BASE}/instructions/get_instructions`);
       if (!response.ok) {
         throw new Error('Failed to fetch instructions');
       }
@@ -30,7 +31,7 @@ const RetrievalStatus = () => {
     const interval = setInterval(async () => {
       try {
         const response = await fetch(
-          "http://209.46.124.94:3000/instructions/get_instructions"
+          `${API_BASE}/instructions/get_instructions`
         );
         const data = await response.json();
         const newest = data.slice(-10).reverse();
@@ -53,7 +54,7 @@ const RetrievalStatus = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://209.46.124.94:3000/instructions/delete_instructions/${id}`, {
+      const response = await fetch(`${API_BASE}/instructions/delete_instructions/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
