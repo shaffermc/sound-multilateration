@@ -150,23 +150,48 @@ function CreatePlotJSON({ onResult }) {
         </div>
       ))}
 
-      {/* SAVE / DELETE */}
-      <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-        <input
-          type="text"
-          value={newPresetName}
-          onChange={e => setNewPresetName(e.target.value)}
-          placeholder="Save Preset Name"
-        />
+{/* SAVE / DELETE */}
+<div
+  style={{
+    marginTop: "10px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px",
+  }}
+>
+  <input
+    type="text"
+    value={newPresetName}
+    onChange={e => setNewPresetName(e.target.value)}
+    placeholder="Save Preset Name"
+    style={{ width: "180px" }}
+  />
 
-        <button onClick={savePreset}>Save</button>
+  <div style={{ display: "flex", gap: "6px" }}>
+    <button
+      onClick={savePreset}
+      style={{
+        fontSize: "12px",
+        padding: "4px 8px",
+      }}
+    >
+      Save
+    </button>
 
-        {selectedPresetId && (
-          <button onClick={deletePreset} style={{ background: "red", color: "white" }}>
-            Delete
-          </button>
-        )}
-      </div>
+    {selectedPresetId && (
+      <button
+        onClick={deletePreset}
+        style={{
+          fontSize: "12px",
+          padding: "4px 8px"
+        }}
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</div>
 
     </div>
   );
