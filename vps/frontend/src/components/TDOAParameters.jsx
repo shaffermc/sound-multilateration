@@ -1,5 +1,4 @@
 import { useState } from "react";
-import ComputeAndPlotSoundSource from "../assets/6.png"
 
 export default function TDOAParameters({ stations, onResult }) {
   const [times, setTimes] = useState([0, 0, 0, 0]);
