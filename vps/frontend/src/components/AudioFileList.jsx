@@ -64,10 +64,14 @@ const AudioFileList = () => {
   }
 
   return (
-    <div>
-      <h3 style={{ textAlign: 'left' }}>Available Audio Files:</h3>
+    <div style={{
+    padding: "1px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    }}>
       {audioFiles.length === 0 ? (
-        <p>No audio files found.</p>
+        <p>No audio files yet.</p>
       ) : (
         <table border="1">
           <thead>

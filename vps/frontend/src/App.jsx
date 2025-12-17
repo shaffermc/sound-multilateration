@@ -36,8 +36,8 @@ export default function App() {
         <div style={{ textAlign: "center" }}><img src={AudioFileMerging} alt="Audio File Merging" style={{ width: 147, marginBottom: 4 }} /></div>
         <RetrievalStatus />
         <AudioFileList />
-        <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets" style={{ width: 195, marginBottom: 4 }} /></div>
-        Follow the instructions here to determine the offset values.
+        <div style={{ textAlign: "center" }}><img src={MeasureTimeDelayOffsets} alt="Measure Time Delay Offsets" style={{ width: 195, marginBottom: 4 }} />Follow the instructions here to determine the offset values.</div>
+        
         <div style={{ textAlign: "center" }}><img src={EnterTimeDelayOffsetes} alt="Enter Time Delays Offsets" style={{ width: 174, marginBottom: 4 }} /></div>
 
         <TDOAParameters
