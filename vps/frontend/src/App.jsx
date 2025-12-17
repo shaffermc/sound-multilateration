@@ -81,6 +81,20 @@ const styles = {
   
 };
 
+const titleStyle = {
+  width: "100%",
+  maxWidth: "260px",
+  textAlign: "center",
+  fontSize: "20px",       
+  fontWeight: "700",      
+  letterSpacing: "0.5px",
+  color: "#333",
+  margin: "12px auto 12px auto",
+  paddingBottom: "6px",
+  borderBottom: "2px solid #333",
+};
+
+
 const sectionHeaderStyle = {
   width: "100%",
   maxWidth: "260px",

@@ -6,93 +6,68 @@ const AudioFileList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Function to fetch audio files from the backend API
     const fetchAudioFiles = async () => {
       try {
         const response = await fetch('/sound-locator/api/audio-files');
-        if (!response.ok) {
-          throw new Error('Failed to fetch audio files');
-        }
-        const files = await response.json();
-        return files;
-      } catch (error) {
-        setError(error.message);
+        if (!response.ok) throw new Error('Failed to fetch audio files');
+        return await response.json();
+      } catch (err) {
+        setError(err.message);
         return [];
       }
     };
 
-    // Polling function to periodically check for updates
     const pollForUpdates = async () => {
-      try {
-        setLoading(true);
-        const newFiles = await fetchAudioFiles();
-
-        // If new files are different from the current state, update the state
-        setAudioFiles((prevFiles) => {
-          // Only update the table if there is a difference
-          if (JSON.stringify(prevFiles) !== JSON.stringify(newFiles)) {
-            return newFiles;
-          }
-          return prevFiles; // No changes, so return the current state
-        });
-      } catch (error) {
-        setError('Failed to fetch audio files');
-      } finally {
-        setLoading(false);
-      }
+      setLoading(true);
+      const newFiles = await fetchAudioFiles();
+      setAudioFiles((prevFiles) =>
+        JSON.stringify(prevFiles) !== JSON.stringify(newFiles) ? newFiles : prevFiles
+      );
+      setLoading(false);
     };
 
-    // Initial fetch of audio files
     pollForUpdates();
-
-    // Set up polling every 30 seconds
-    const intervalId = setInterval(() => {
-      pollForUpdates();
-    }, 30000); // Poll every 30 seconds
-
-    // Clear the interval when the component unmounts
+    const intervalId = setInterval(pollForUpdates, 30000);
     return () => clearInterval(intervalId);
-
   }, []);
 
-  if (loading) {
-    return <div>Loading audio files...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading audio files...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div style={{
-    padding: "1px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+      <div style={{
+        width: "100%",
+        textAlign: "center",
+        fontSize: "13px",
+        fontWeight: "600",
+        letterSpacing: "0.5px",
+        color: "#333",
+        margin: "8px 0 4px 0",
+        paddingBottom: "4px",
+        borderBottom: "1px solid #ddd"
+      }}>
+        Audio Files
+      </div>
+
       {audioFiles.length === 0 ? (
         <p>No audio files yet.</p>
       ) : (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Download</th>
-            </tr>
-          </thead>
-          <tbody>
-            {audioFiles.map((file, index) => (
-              <tr key={index}>
-                <td>{file}</td>
-                <td>
-                  <a href={`/sound-locator/api/audio/${file}`} download>
-                    Download
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        audioFiles.map((file, idx) => (
+          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', width: '90%' }}>
+            <span style={{ fontSize: "12px", overflowWrap: "anywhere" }}>{file}</span>
+            <a href={`/sound-locator/api/audio/${file}`} download>
+              <button style={{
+                fontSize: "12px",
+                padding: "2px 6px",
+                backgroundColor: "#b6ffb6",
+                border: "1px solid #aaa",
+                borderRadius: "3px",
+                cursor: "pointer"
+              }}>Download</button>
+            </a>
+          </div>
+        ))
       )}
     </div>
   );
