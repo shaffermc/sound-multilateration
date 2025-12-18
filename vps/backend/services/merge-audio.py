@@ -37,7 +37,9 @@ def merge_audio_files(file_prefix):
     files = []
     for i in range(1, 5):
         filename = f"{file_prefix}_audio{i}.wav"
+        print(filename)
         filepath = os.path.join(AUDIO_FOLDER, filename)
+        print(filepath)
         if not os.path.exists(filepath):
             print(f"Missing file: {filepath}")
             return False
@@ -45,14 +47,15 @@ def merge_audio_files(file_prefix):
 
     # Trim all files to the length of the shortest one
     min_len = min(len(a) for a in files)
+    print(min_len)
     files = [a[:min_len] for a in files]
 
     # Merge into 4-channel audio
     combined = AudioSegment.from_mono_audiosegments(*files)
     output_file = os.path.join(MERGED_FOLDER, f"{file_prefix}_combined.wav")
+    print(output_file)
     combined.export(output_file, format="wav")
     print(f"Merged audio saved to {output_file}")
-    return True
 
 def check_and_merge():
     print("\nChecking for 'sound_request' instructions not yet merged...")
@@ -64,20 +67,12 @@ def check_and_merge():
     print(f"Found {len(instructions)} instructions to process.")
     for instr in instructions:
         print(f"Instruction ID: {instr['_id']}, value: {instr.get('instruction_value')}")
-        if all([
-            instr.get("station1_complete", False),
-            instr.get("station2_complete", False),
-            instr.get("station3_complete", False),
-            instr.get("station4_complete", False)
-        ]):
+        if (instr.get("station1_complete") == True) and (instr.get("station2_complete") == True) and (instr.get("station3_complete") == True) and(instr.get("station4_complete") == True):
             print("All stations complete, attempting merge.")
-            success = merge_audio_files(instr["instruction_value"])
-            if success:
-                instructions_collection.update_one(
-                    {"_id": instr["_id"]},
-                    {"$set": {"all_complete": True}}
-                )
-                print(f"Instruction {instr['_id']} marked as merged.")
+            merge_audio_files(instr["instruction_value"])
+            print("Merging complete. Updating instruction as all complete in database.")
+            instructions_collection.update_one( {"_id": instr["_id"]},{"$set": {"all_complete": True}})
+            print(f"Instruction {instr['_id']} marked as merged.")
         else:
             print("Not all files present to merge.")
 
