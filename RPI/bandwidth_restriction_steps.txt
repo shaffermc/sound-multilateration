@@ -1,0 +1,57 @@
+
+Steps for removing system processes that use bandwidth:
+
+
+-------------------------------------------
+Install bandwidth monitoring tools
+sudo apt update
+sudo apt install vnstat nethogs
+
+--------------------------------------------
+Disable unattended upgrades
+sudo systemctl disable unattended-upgrades
+sudo systemctl stop unattended-upgrades
+
+---------------------------------------------
+Disable and remove packagekit
+sudo systemctl disable packagekit
+sudo systemctl stop packagekit
+sudo apt purge packagekit packagekit-tools
+sudo apt autoremove
+
+---------------------------------------------
+Disable all APT timers
+sudo systemctl stop apt-daily.timer
+sudo systemctl stop apt-daily-upgrade.timer
+sudo systemctl disable apt-daily.timer
+sudo systemctl disable apt-daily-upgrade.timer
+sudo systemctl mask apt-daily.timer
+sudo systemctl mask apt-daily-upgrade.timer
+Verify: systemctl list-timers | grep apt
+
+---------------------------------------------
+Disable periodic APT behavior
+sudo nano /etc/apt/apt.conf.d/10periodic
+Add:
+APT::Periodic::Enable "0";
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::AutocleanInterval "0";
+Create file if it doesn't exist.
+
+-----------------------------------------------
+Disable EEPROM updates
+sudo systemctl disable rpi-eeprom-update
+sudo systemctl stop rpi-eeprom-update
+
+----------------------------------------------
+Disable all APT usage
+sudo apt-mark hold '*'
+Verify:
+apt-mark showhold
+
+----------------------------------------------
+Verify no bandwidth usage:
+sudo nethogs
+See active connections:
+sudo ss -tunap
