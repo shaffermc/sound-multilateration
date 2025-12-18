@@ -163,6 +163,37 @@ app.get('/audio-files', (req, res) => {
   });
 });
 
+// DELETE audio file
+app.delete('/audio/:filename', (req, res) => {
+  const { filename } = req.params;
+
+  // Basic validation: only allow .wav files to prevent accidental deletion of other files
+  if (path.extname(filename).toLowerCase() !== '.wav') {
+    return res.status(400).json({ error: 'Invalid file type' });
+  }
+
+  const filePath = path.join(audioDirectory, filename);
+
+  // Check if file exists
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Delete the file
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Error deleting file:', err);
+        return res.status(500).json({ error: 'Failed to delete file' });
+      }
+
+      console.log(`Deleted file: ${filename}`);
+      res.json({ message: `File "${filename}" deleted successfully` });
+    });
+  });
+});
+
+
 const esp32Routes = require('./routes/esp32Routes');
 app.use('/esp32', esp32Routes);
 
