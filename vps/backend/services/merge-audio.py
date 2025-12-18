@@ -1,85 +1,120 @@
 import os
 import time
+import requests
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from pydub import AudioSegment
 
 # -------- CONFIG --------
-MONGO_URI = "mongodb://admin:adminpassword@127.0.0.1:27018/soundlocator?authSource=admin"
-DB_NAME = "soundlocator"
-COLLECTION_NAME = "instructions"
-AUDIO_FOLDER = "/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files"
-MERGED_FOLDER = "/home/mshaffer/www/sound-multilateration/vps/backend/services/merged_audio"
-CHECK_INTERVAL = 60  # seconds
-# ------------------------
+#MONGO_URI = "mongodb://admin:adminpassword@127.0.0.1:27018/soundlocator?authSource=admin"
+#DB_NAME = "soundlocator"
+#COLLECTION_NAME = "instructions"
+AUDIO_FOLDER = "/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files/"
+output_directory = "/home/mshaffer/www/sound-multilateration/vps/backend/services/merged_audio"
+#CHECK_INTERVAL = 60  # seconds
 
-# ------------------------
-# Connect to MongoDB with check
-# ------------------------
-try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    # Trigger a server selection to verify connection
-    client.admin.command('ping')
-    print("MongoDB connection successful")
-except ConnectionFailure as e:
-    print("MongoDB connection failed:", e)
-    exit(1)
 
-db = client[DB_NAME]
-instructions_collection = db[COLLECTION_NAME]
+def fetch_instructions():
+    url = 'http://localhost:3000/instructions/get_instructions'
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Will raise an exception for HTTP error codes (4xx/5xx)
+        instructions = response.json()  # Parse the JSON response
+        return instructions
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching instructions: {e}")
+        return []
 
-os.makedirs(MERGED_FOLDER, exist_ok=True)
 
-def merge_audio_files(file_prefix):
-    """
-    Merge audio1..audio4 into a 4-channel file.
-    """
-    files = []
-    for i in range(1, 4):
-        filename = f"{file_prefix}_audio{i}.wav"
-        print(filename)
-        filepath = os.path.join(AUDIO_FOLDER, filename)
-        print(filepath)
-        if not os.path.exists(filepath):
-            print(f"Missing file: {filepath}")
-            return False
-        files.append(AudioSegment.from_file(filepath))
+# Function to load and combine audio files
+def combine_audio(instruction_value):
+    # Paths to the audio files (based on the instruction_value)
+    audio_file_1 = f"{AUDIO_FOLDER}{instruction_value}_audio1.wav"
+    audio_file_2 = f"{AUDIO_FOLDER}{instruction_value}_audio2.wav"
+    audio_file_3 = f"{AUDIO_FOLDER}{instruction_value}_audio3.wav"
+    audio_file_4 = f"{AUDIO_FOLDER}{instruction_value}_audio4.wav"
 
-    # Trim all files to the length of the shortest one
-    min_len = min(len(a) for a in files)
-    print(min_len)
-    files = [a[:min_len] for a in files]
+    # Check if all audio files exist
+    if not os.path.exists(audio_file_1) or not os.path.exists(audio_file_2) or not os.path.exists(audio_file_3) or not os.path.exists(audio_file_4):
+        print("One or more audio files are missing.")
+        return None
 
-    # Merge into 4-channel audio
-    combined = AudioSegment.from_mono_audiosegments(*files)
-    output_file = os.path.join(MERGED_FOLDER, f"{file_prefix}_combined.wav")
-    print(output_file)
-    combined.export(output_file, format="wav")
-    print(f"Merged audio saved to {output_file}")
+    # Load the audio files
+    audio1 = AudioSegment.from_file(audio_file_1)
+    audio2 = AudioSegment.from_file(audio_file_2)
+    audio3 = AudioSegment.from_file(audio_file_3)
+    audio4 = AudioSegment.from_file(audio_file_4)
 
-def check_and_merge():
-    print("\nChecking for 'sound_request' instructions not yet merged...")
-    instructions = list(instructions_collection.find({
-        "instruction_type": "sound_request",
-        "all_complete": False
-    }))
+    # Make sure the audio files are the same length and sample rate
+    if audio1.frame_rate != audio2.frame_rate or audio1.frame_rate != audio3.frame_rate or audio1.frame_rate != audio4.frame_rate:
+        print("The audio files must have the same sample rate.")
+        return None
 
-    print(f"Found {len(instructions)} instructions to process.")
-    for instr in instructions:
-        print(f"Instruction ID: {instr['_id']}, value: {instr.get('instruction_value')}")
-        if (instr.get("station1_complete") == True) and (instr.get("station2_complete") == True) and (instr.get("station3_complete") == True) and (instr.get("station4_complete") == True):
-            print("All stations complete, attempting merge.")
-            merge_audio_files(instr["instruction_value"])
-            print("Merging complete. Updating instruction as all complete in database.") 
-            instructions_collection.update_one( {"_id": instr["_id"]},{"$set": {"all_complete": True}})
-            print(f"Instruction {instr['_id']} marked as merged.")
-        else:
-            print("Not all files present to merge.")
+    if len(audio1) != len(audio2) or len(audio1) != len(audio3) or len(audio1) != len(audio4):
+        print("The audio files must be the same length.")
+        return None
 
-if __name__ == "__main__":
-    while True:
-        try:
-            check_and_merge()
-        except Exception as e:
-            print("Error during merge check:", e)
-        time.sleep(CHECK_INTERVAL)
+    # Stack the tracks on top of each other (same length)
+    combined_audio = AudioSegment.from_mono_audiosegments(audio1, audio2, audio3, audio4)
+
+    # Export the combined audio to a new file
+    output_file = os.path.join(output_directory, f"combined_{instruction_value}.wav")
+    combined_audio.export(output_file, format="wav")
+    print(f"Audio files have been merged successfully into {output_file}")
+    
+    return output_file
+
+# Function to update the all_complete field for a specific instruction
+def update_all_complete(instruction_id):
+    url = f'http://localhost:3000/instructions/update_instructions/{instruction_id}'
+    data = {'all_complete': True}
+    
+    try:
+        response = requests.put(url, json=data)
+        response.raise_for_status()  # Will raise an exception for HTTP error codes (4xx/5xx)
+        print(f"Instruction {instruction_id} updated to all_complete = True.")
+    except requests.exceptions.RequestException as e:
+        print(f"Error updating instruction {instruction_id}: {e}")
+
+# Function to process instructions
+def process_instructions():
+    instructions = fetch_instructions()
+    
+    # Get the current time in timestamp format (in milliseconds)
+    current_time = int(time.time() * 1000)
+
+    for instruction in instructions:
+        # Get the relevant fields from the instruction
+        station1_complete = instruction['station1_complete']
+        station2_complete = instruction['station2_complete']
+        station3_complete = instruction['station3_complete']
+        station4_complete = instruction['station4_complete']
+        instruction_value = instruction['instruction_value']
+        timestamp = instruction['timestamp']
+        all_complete = instruction['all_complete']
+        instruction_id = instruction['_id']
+
+        # Skip if all_complete is already True
+        if all_complete:
+            print(f"Instruction {instruction_id} is already completed. Skipping.")
+            continue
+
+        # Check if the conditions for station completion are met and the instruction is recent
+        #if station1_complete:
+        if station1_complete and station2_complete and station3_complete and station4_complete:
+            # Check if the instruction was created relatively recently
+            time_diff = current_time - timestamp
+            if time_diff <= 500000: 
+                print(f"Found valid instruction with instruction_value {instruction_value}")
+
+                # Combine the audio files for this instruction
+                output_file = combine_audio(instruction_value)
+
+                # Update the all_complete field to True
+                update_all_complete(instruction_id)
+
+# Main loop to check every minute
+while True:
+    process_instructions()
+    print("Waiting for the next minute...")
+    time.sleep(60)  # Wait for 60 seconds before running the process again
