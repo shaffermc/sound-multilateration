@@ -53,17 +53,6 @@ router.put('/update_instructions/:id', async (req, res) => {
       return res.status(404).json({ message: 'Instruction not found' });
     }
 
-    // Automatically mark all_complete if all stations are done
-    if (
-      updatedInstruction.station1_complete &&
-      updatedInstruction.station2_complete &&
-      updatedInstruction.station3_complete &&
-      updatedInstruction.station4_complete
-    ) {
-      updatedInstruction.all_complete = true;
-      await updatedInstruction.save();
-    }
-
     res.status(200).json({ message: 'Instruction updated successfully', instruction: updatedInstruction });
   } catch (error) {
     console.error(error);
