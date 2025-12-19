@@ -1,10 +1,10 @@
 
 import React from 'react';
-import StationStatus from "./components/StationStatus";
-import BandwidthDisplay from "./components/BandwidthDisplay";
-import AddInstruction from "./components/AddInstruction";
-import InstructionsList from "./components/InstructionsList";
-import Esp32Dashboard from "./components/ESP32Dashboard";
+import StationStatus from "../components/StationStatus";
+import BandwidthDisplay from "../components/BandwidthDisplay";
+import AddInstruction from "../components/AddInstruction";
+import InstructionsList from "../components/InstructionsList";
+import Esp32Dashboard from "../components/ESP32Dashboard";
 
 export default function SystemStatus() {
 
