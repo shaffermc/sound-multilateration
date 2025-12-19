@@ -12,7 +12,7 @@ import BandwidthDisplay from "./components/BandwidthDisplay";
 import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
-import Esp32Dashboard from "./components/ESP32Dashboard";
+import ESP32Dashboard from "./components/ESP32Dashboard";
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -40,6 +40,11 @@ export default function App() {
             onResult={setResult}
           />
         </div>
+        <div><StationStatus /></div>
+        <div><BandwidthDisplay /></div>
+        <div><AddInstruction /></div>
+        <div><InstructionsList /></div>
+        <div><ESP32Dashboard /></div>
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
