@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; 
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+
+import "./App.css";
 
 import RetrieveAudio from "./components/RetrieveAudio";
 import TDOAParameters from "./components/TDOAParameters";
@@ -12,7 +14,7 @@ import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
 import Esp32Dashboard from "./components/ESP32Dashboard";
-import SystemStatus from './pages/SystemStatus'; 
+import SystemStatus from './pages/SystemStatus';  
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -20,7 +22,7 @@ export default function App() {
   return (
     <Router>
       <div style={styles.container}>
-        
+
         {/* LEFT SIDEBAR (20%) */}
         <div style={styles.sidebar}>
           <div style={titleStyle}>Sound Source Locator</div>
@@ -41,25 +43,20 @@ export default function App() {
               onResult={setResult}
             />
           </div>
-
-          {/* Link to System Status Page */}
           <div style={styles.footer}>
-            <Link to="/status">Go to System Status</Link>
-          </div>
+          <Link to="/status">.</Link>
+        </div>
+            <Routes>
+            <Route path="/status" element={<SystemStatus />} />  {/* SystemStatus route */}
+          </Routes>
         </div>
 
         {/* RIGHT MAP PANEL (80%) */}
         <div style={styles.mapContainer}>
           <TDOAMap result={result} />
         </div>
-      </div>
-
-      {/* React Router: Define Routes */}
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/status" element={<SystemStatus />} /> 
-      </Routes>
-    </Router>
+        </div>
+      </Router>
   );
 }
 
@@ -73,8 +70,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",         
-    maxWidth: "340px",          
+    minWidth: "260px",           // ✅ prevents crushing
+    maxWidth: "340px",           // ✅ prevents overflow growth
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -82,17 +79,16 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",      
+    overflowX: "hidden",         // ✅ KEY LINE
     borderRight: "2px solid #ddd",
   },
+
   mapContainer: {
     width: "80%",
     height: "100%",
   },
-  footer: {
-    marginTop: "auto",  
-    textAlign: "center",
-  }
+
+  
 };
 
 const titleStyle = {
@@ -107,6 +103,7 @@ const titleStyle = {
   paddingBottom: "6px",
   borderBottom: "2px solid #333",
 };
+
 
 const sectionHeaderStyle = {
   width: "100%",
