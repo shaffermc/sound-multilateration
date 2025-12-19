@@ -12,36 +12,35 @@ export default function App() {
   const [result, setResult] = useState(null);
 
   return (
-    <div style={styles.container}>
+  <div style={styles.container}>
+    {/* LEFT SIDEBAR (20%) */}
+    <div style={styles.sidebar}>
+      <div style={titleStyle}>Sound Source Locator</div>
+      <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
+      <div><CreatePlotJSON onResult={setResult} /></div>
+      <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
+      <RetrieveAudio />
+      <RetrievalStatus />
+      <div style={sectionHeaderStyle}>Audio File Merging</div>
+      <AudioFileList />
+      <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
+      <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
+      <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
+      <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
+   {/*   <div>
+        <TDOAParameters
+          stations={result?.stations || []}
+          onResult={setResult}
+        />
+      </div>*/}
+    </div>
 
-      {/* LEFT SIDEBAR (20%) */}
-      <div style={styles.sidebar}>
-        <div style={sectionHeaderStyle}>Sound Source Locating System</div>
-        <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
-        <div><CreatePlotJSON onResult={setResult} /></div>
-        <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
-        <RetrieveAudio />
-        <RetrievalStatus />
-        <div style={sectionHeaderStyle}>Audio File Merging</div>
-        <AudioFileList />
-        <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
-        <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-        <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
-        <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
-        <div>
-          <TDOAParameters
-            stations={result?.stations || []}
-            onResult={setResult}
-          />
-        </div>
-      </div>
-
-      {/* RIGHT MAP PANEL (80%) */}
-      <div style={styles.mapContainer}>
-        <TDOAMap result={result} />
-      </div>
-      </div>
-  );
+    {/* RIGHT MAP PANEL (80%) */}
+    <div style={styles.mapContainer}>
+     {/* <TDOAMap result={result} />*/}
+    </div>
+  </div>
+);
 }
 
 const styles = {
@@ -66,7 +65,6 @@ const styles = {
     overflowX: "hidden",
     borderRight: "2px solid #ddd"
   },
-
   mapContainer: {
     width: "80%",
     height: "100%",
@@ -77,15 +75,14 @@ const titleStyle = {
   width: "100%",
   maxWidth: "260px",
   textAlign: "center",
-  fontSize: "20px",       
-  fontWeight: "700",      
+  fontSize: "20px",
+  fontWeight: "700",
   letterSpacing: "0.5px",
   color: "#333",
   margin: "12px auto 12px auto",
   paddingBottom: "6px",
   borderBottom: "2px solid #333"
 };
-
 
 const sectionHeaderStyle = {
   width: "100%",
