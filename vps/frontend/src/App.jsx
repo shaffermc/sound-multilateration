@@ -27,17 +27,17 @@ export default function App() {
       <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
       <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
       <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
-   {/*   <div>
+      <div>
         <TDOAParameters
           stations={result?.stations || []}
           onResult={setResult}
         />
-      </div>*/}
+      </div>
     </div>
 
     {/* RIGHT MAP PANEL (80%) */}
     <div style={styles.mapContainer}>
-     {/* <TDOAMap result={result} />*/}
+      <TDOAMap result={result} />
     </div>
   </div>
 );

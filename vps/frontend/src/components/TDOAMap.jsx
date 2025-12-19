@@ -5,7 +5,6 @@ import L from "leaflet";
 import { useMap } from "react-leaflet";
 import { useEffect } from "react";
 
-// Custom circle icons
 const blackIcon = new L.DivIcon({
   className: "custom-icon",
   html: '<div style="width:12px; height:12px; background:blue; border-radius:50%; border:2px solid white;"></div>',
@@ -27,21 +26,29 @@ const yellowIcon = new L.DivIcon({
   iconAnchor: [7, 7],
 });
 
+
 function ZoomToStations({ stations }) {
   const map = useMap();
 
   useEffect(() => {
+    // Check if stations data is available
     if (!stations || stations.length === 0) return;
 
-    const valid = stations.filter(s => s.lat !== 0 && s.lon !== 0);
-    if (valid.length === 0) return;
+    // Filter out any stations with invalid coordinates (lat=0, lon=0)
+    const validStations = stations.filter(s => s.lat !== 0 && s.lon !== 0);
+    
+    // If there are no valid stations, don't do anything
+    if (validStations.length === 0) return;
 
-    const bounds = L.latLngBounds(valid.map(s => [s.lat, s.lon]));
+    // Calculate bounds to zoom into valid stations
+    const bounds = L.latLngBounds(validStations.map(s => [s.lat, s.lon]));
+    
+    // Fit the map bounds with padding for better visibility
     map.fitBounds(bounds, { padding: [50, 50] });
 
-  }, [stations, map]);
+  }, [stations, map]);  // Dependency on stations and map to rerun effect when these change
 
-  return null;
+  return null;  // No need to render anything here
 }
 
 export default function TDOAMap({ result }) {
@@ -55,7 +62,6 @@ export default function TDOAMap({ result }) {
   const global_solution = result?.global_solution || null;
   const hyperbolas = result?.hyperbolas || [];
 
-  // 🎨 Colors for hyperbolas
   const colors = ["red", "orange", "blue", "cyan", "yellow", "white"];
 
   return (
