@@ -32,7 +32,7 @@ def merge_audio_files(file_prefix):
     Merge audio1..audio4 into a 4-channel file.
     """
     files = []
-    for i in range(1, 4):
+    for i in range(1, 5):
         filename = f"{file_prefix}_audio{i}.wav"
         print(filename)
         filepath = os.path.join(AUDIO_FOLDER, filename)
@@ -64,7 +64,7 @@ def check_and_merge():
     print(f"Found {len(instructions)} instructions to process.")
     for instr in instructions:
         print(f"Instruction ID: {instr['_id']}, value: {instr.get('instruction_value')}")
-        if (instr.get("station1_complete") == True) and (instr.get("station2_complete") == True) and (instr.get("station3_complete") == True) and(instr.get("station4_complete") == True):
+        if (instr.get("station1_complete") == True) and (instr.get("station2_complete") == True) and (instr.get("station3_complete") == True) and (instr.get("station4_complete") == True):
             print("All stations complete, attempting merge.")
             merge_audio_files(instr["instruction_value"])
             print("Merging complete. Updating instruction as all complete in database.")
