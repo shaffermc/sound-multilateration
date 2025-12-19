@@ -60,8 +60,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",           // ✅ prevents crushing
-    maxWidth: "340px",           // ✅ prevents overflow growth
+    minWidth: "260px",           
+    maxWidth: "340px",         
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -69,7 +69,7 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",         // ✅ KEY LINE
+    overflowX: "hidden",       
     borderRight: "2px solid #ddd",
   },
 
