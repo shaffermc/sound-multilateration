@@ -92,7 +92,6 @@ const styles = {
   footer: {
     marginTop: "auto",  
     textAlign: "center",
-    marginTop: "20px",
   }
 };
 
