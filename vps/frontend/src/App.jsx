@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import "./App.css";
 
@@ -7,12 +6,7 @@ import TDOAParameters from "./components/TDOAParameters";
 import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
-import StationStatus from "./components/StationStatus";
-import BandwidthDisplay from "./components/BandwidthDisplay";
-import AddInstruction from "./components/AddInstruction";
-import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
-import Esp32Dashboard from "./components/ESP32Dashboard";
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -60,8 +54,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",           // ✅ prevents crushing
-    maxWidth: "340px",           // ✅ prevents overflow growth
+    minWidth: "260px",
+    maxWidth: "340px", 
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -69,16 +63,14 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",         // ✅ KEY LINE
-    borderRight: "2px solid #ddd",
+    overflowX: "hidden",
+    borderRight: "2px solid #ddd"
   },
 
   mapContainer: {
     width: "80%",
     height: "100%",
-  },
-
-  
+  }
 };
 
 const titleStyle = {
@@ -91,7 +83,7 @@ const titleStyle = {
   color: "#333",
   margin: "12px auto 12px auto",
   paddingBottom: "6px",
-  borderBottom: "2px solid #333",
+  borderBottom: "2px solid #333"
 };
 
 
@@ -105,5 +97,5 @@ const sectionHeaderStyle = {
   color: "#333",
   margin: "8px auto 4px auto",
   paddingBottom: "4px",
-  borderBottom: "1px solid #ddd",
+  borderBottom: "1px solid #ddd"
 };
