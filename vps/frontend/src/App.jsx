@@ -14,7 +14,7 @@ import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
 import Esp32Dashboard from "./components/ESP32Dashboard";
-import SystemStatus from './pages/SystemStatus';  
+import SystemStatus from './pages/SystemStatus';
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -43,20 +43,24 @@ export default function App() {
               onResult={setResult}
             />
           </div>
+          
+          {/* Navigation link to System Status page */}
           <div style={styles.footer}>
-          <Link to="/status">.</Link>
-        </div>
-            <Routes>
-            <Route path="/status" element={<SystemStatus />} />  {/* SystemStatus route */}
-          </Routes>
+            <Link to="/status">Go to System Status</Link>
+          </div>
         </div>
 
         {/* RIGHT MAP PANEL (80%) */}
         <div style={styles.mapContainer}>
           <TDOAMap result={result} />
         </div>
-        </div>
-      </Router>
+      </div>
+
+      {/* Define Routes for the app */}
+      <Routes>
+        <Route path="/status" element={<SystemStatus />} /> {/* SystemStatus route */}
+      </Routes>
+    </Router>
   );
 }
 
@@ -70,8 +74,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",           // ✅ prevents crushing
-    maxWidth: "340px",           // ✅ prevents overflow growth
+    minWidth: "260px",       
+    maxWidth: "340px",       
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -79,7 +83,7 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",         // ✅ KEY LINE
+    overflowX: "hidden",       
     borderRight: "2px solid #ddd",
   },
 
@@ -88,7 +92,10 @@ const styles = {
     height: "100%",
   },
 
-  
+  footer: {
+    textAlign: "center", 
+    marginTop: "20px",
+  }
 };
 
 const titleStyle = {
@@ -103,7 +110,6 @@ const titleStyle = {
   paddingBottom: "6px",
   borderBottom: "2px solid #333",
 };
-
 
 const sectionHeaderStyle = {
   width: "100%",
