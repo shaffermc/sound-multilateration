@@ -7,7 +7,8 @@ import CreatePlotJSON from "./components/CreatePlotJSON";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
 import AudioFileList from "./components/AudioFileList";
-
+import ESP32Dashboard from "./components/ESP32Dashboard";
+import StationStatus from "./components/StationStatus";
 export default function App() {
   const [result, setResult] = useState(null);
 
@@ -33,6 +34,8 @@ export default function App() {
           onResult={setResult}
         />
       </div>
+      <div><StationStatus /></div>
+      <div><ESP32Dashboard /></div>
     </div>
 
     {/* RIGHT MAP PANEL (80%) */}
