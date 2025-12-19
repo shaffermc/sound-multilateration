@@ -32,14 +32,19 @@ function ZoomToStations({ stations }) {
 
   useEffect(() => {
     if (!stations || stations.length === 0) return;
+
     const validStations = stations.filter(s => s.lat !== 0 && s.lon !== 0);
+    
     if (validStations.length === 0) return;
+
     const bounds = L.latLngBounds(validStations.map(s => [s.lat, s.lon]));
+    
     map.fitBounds(bounds, { padding: [50, 50] });
 
   }, [stations, map]);  
 
-  return null; 
+  return null;  
+}
 
 export default function TDOAMap({ result }) {
   const defaultCenter = [38.836902, -77.3827];
