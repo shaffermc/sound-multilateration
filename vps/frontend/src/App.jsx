@@ -12,7 +12,7 @@ import BandwidthDisplay from "./components/BandwidthDisplay";
 import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
-import ESP32Dashboard from "./components/ESP32Dashboard";
+import Esp32Dashboard from "./components/ESP32Dashboard";
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -22,7 +22,7 @@ export default function App() {
 
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
-        <div style={titleStyle}>Sound Source Locator</div>
+        <div style={sectionHeaderStyle}>Sound Source Locating System</div>
         <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
         <div><CreatePlotJSON onResult={setResult} /></div>
         <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
@@ -40,18 +40,13 @@ export default function App() {
             onResult={setResult}
           />
         </div>
-        <div><StationStatus /></div>
-        <div><BandwidthDisplay /></div>
-        <div><AddInstruction /></div>
-        <div><InstructionsList /></div>
-        <div><ESP32Dashboard /></div>
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
       <div style={styles.mapContainer}>
         <TDOAMap result={result} />
       </div>
-    </div>
+      </div>
   );
 }
 
@@ -65,8 +60,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",           
-    maxWidth: "340px",         
+    minWidth: "260px",           // ✅ prevents crushing
+    maxWidth: "340px",           // ✅ prevents overflow growth
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -74,7 +69,7 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",       
+    overflowX: "hidden",         // ✅ KEY LINE
     borderRight: "2px solid #ddd",
   },
 
