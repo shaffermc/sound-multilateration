@@ -51,7 +51,7 @@ export default function App() {
       <div style={styles.mapContainer}>
         <TDOAMap result={result} />
       </div>
-      </div>
+    </div>
   );
 }
 
