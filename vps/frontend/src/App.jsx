@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import "./App.css";
-
 import RetrieveAudio from "./components/RetrieveAudio";
 import TDOAParameters from "./components/TDOAParameters";
 import CreatePlotJSON from "./components/CreatePlotJSON";
@@ -14,53 +13,44 @@ import AddInstruction from "./components/AddInstruction";
 import InstructionsList from "./components/InstructionsList";
 import AudioFileList from "./components/AudioFileList";
 import Esp32Dashboard from "./components/ESP32Dashboard";
-import SystemStatus from './pages/SystemStatus';
 
 export default function App() {
   const [result, setResult] = useState(null);
 
   return (
-    <Router>
-      <div style={styles.container}>
-
-        {/* LEFT SIDEBAR (20%) */}
-        <div style={styles.sidebar}>
-          <div style={titleStyle}>Sound Source Locator</div>
-          <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
-          <div><CreatePlotJSON onResult={setResult} /></div>
-          <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
-          <RetrieveAudio />
-          <RetrievalStatus />
-          <div style={sectionHeaderStyle}>Audio File Merging</div>
-          <AudioFileList />
-          <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
-          <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-          <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
-          <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
-          <div>
-            <TDOAParameters
-              stations={result?.stations || []}
-              onResult={setResult}
-            />
-          </div>
-          
-          {/* Navigation link to System Status page */}
-          <div style={styles.footer}>
-            <Link to="/status">Go to System Status</Link>
-          </div>
+    <div style={styles.container}>
+      {/* LEFT SIDEBAR (20%) */}
+      <div style={styles.sidebar}>
+        <div style={titleStyle}>Sound Source Locator</div>
+        <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
+        <div><CreatePlotJSON onResult={setResult} /></div>
+        <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
+        <RetrieveAudio />
+        <RetrievalStatus />
+        <div style={sectionHeaderStyle}>Audio File Merging</div>
+        <AudioFileList />
+        <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
+        <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
+        <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
+        <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
+        <div>
+          <TDOAParameters
+            stations={result?.stations || []}
+            onResult={setResult}
+          />
         </div>
-
-        {/* RIGHT MAP PANEL (80%) */}
-        <div style={styles.mapContainer}>
-          <TDOAMap result={result} />
+        
+        {/* Navigation link to System Status page */}
+        <div style={styles.footer}>
+          <Link to="/status">Go to System Status</Link>
         </div>
       </div>
 
-      {/* Define Routes for the app */}
-      <Routes>
-        <Route path="/status" element={<SystemStatus />} /> {/* SystemStatus route */}
-      </Routes>
-    </Router>
+      {/* RIGHT MAP PANEL (80%) */}
+      <div style={styles.mapContainer}>
+        <TDOAMap result={result} />
+      </div>
+    </div>
   );
 }
 
