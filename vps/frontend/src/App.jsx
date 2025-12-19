@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from 'react-router-dom';
 
 import "./App.css";
+
 import RetrieveAudio from "./components/RetrieveAudio";
 import TDOAParameters from "./components/TDOAParameters";
 import CreatePlotJSON from "./components/CreatePlotJSON";
@@ -19,6 +19,7 @@ export default function App() {
 
   return (
     <div style={styles.container}>
+
       {/* LEFT SIDEBAR (20%) */}
       <div style={styles.sidebar}>
         <div style={titleStyle}>Sound Source Locator</div>
@@ -39,18 +40,13 @@ export default function App() {
             onResult={setResult}
           />
         </div>
-        
-        {/* Navigation link to System Status page */}
-        <div style={styles.footer}>
-          <Link to="/status">Go to System Status</Link>
-        </div>
       </div>
 
       {/* RIGHT MAP PANEL (80%) */}
       <div style={styles.mapContainer}>
         <TDOAMap result={result} />
       </div>
-    </div>
+      </div>
   );
 }
 
@@ -64,8 +60,8 @@ const styles = {
   },
   sidebar: {
     width: "20%",
-    minWidth: "260px",       
-    maxWidth: "340px",       
+    minWidth: "260px",           // ✅ prevents crushing
+    maxWidth: "340px",           // ✅ prevents overflow growth
     background: "#ffffff",
     padding: "10px",
     display: "flex",
@@ -73,7 +69,7 @@ const styles = {
     gap: "12px",
     boxSizing: "border-box",
     overflowY: "auto",
-    overflowX: "hidden",       
+    overflowX: "hidden",         // ✅ KEY LINE
     borderRight: "2px solid #ddd",
   },
 
@@ -82,10 +78,7 @@ const styles = {
     height: "100%",
   },
 
-  footer: {
-    textAlign: "center", 
-    marginTop: "20px",
-  }
+  
 };
 
 const titleStyle = {
@@ -100,6 +93,7 @@ const titleStyle = {
   paddingBottom: "6px",
   borderBottom: "2px solid #333",
 };
+
 
 const sectionHeaderStyle = {
   width: "100%",
