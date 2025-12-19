@@ -1,9 +1,10 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Tooltip } from "react-leaflet"; 
+import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useMap } from "react-leaflet";
 import { useEffect } from "react";
+
 const blackIcon = new L.DivIcon({
   className: "custom-icon",
   html: '<div style="width:12px; height:12px; background:blue; border-radius:50%; border:2px solid white;"></div>',
@@ -30,19 +31,24 @@ function ZoomToStations({ stations }) {
   const map = useMap();
 
   useEffect(() => {
+    // Check if stations data is available
     if (!stations || stations.length === 0) return;
 
+    // Filter out any stations with invalid coordinates (lat=0, lon=0)
     const validStations = stations.filter(s => s.lat !== 0 && s.lon !== 0);
     
+    // If there are no valid stations, don't do anything
     if (validStations.length === 0) return;
 
+    // Calculate bounds to zoom into valid stations
     const bounds = L.latLngBounds(validStations.map(s => [s.lat, s.lon]));
     
+    // Fit the map bounds with padding for better visibility
     map.fitBounds(bounds, { padding: [50, 50] });
 
-  }, [stations, map]);  
+  }, [stations, map]);  // Dependency on stations and map to rerun effect when these change
 
-  return null;  
+  return null;  // No need to render anything here
 }
 
 export default function TDOAMap({ result }) {
@@ -64,17 +70,15 @@ export default function TDOAMap({ result }) {
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
-        {/*  AUTO-ZOOM WHEN PRESET CHANGES */}
+        {/* ⭐ AUTO-ZOOM WHEN PRESET CHANGES */}
         <ZoomToStations stations={stations} />
 
         {/* Stations */}
         {stations.map((s, i) => (
-          <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
-            {/* Show Station index as small text next to the marker */}
-            <Tooltip>{`S${i + 1}`}</Tooltip>
-          </Marker>
+            <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
+            <Popup>Station {i + 1}</Popup>
+            </Marker>
         ))}
-
 
       {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (
