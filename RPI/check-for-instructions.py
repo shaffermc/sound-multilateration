@@ -213,6 +213,14 @@ def process_instructions():
             time.sleep(1)
             os.system('sudo reboot')
 
+        # =========================
+        # SHUTDOWN
+        # =========================
+        elif instruction_type == 'shutdown':
+            mark_station_complete(instruction_id)
+            print("Shutting down Raspberry Pi in 1 second...")
+            time.sleep(1)
+            os.system('sudo shutdown -h now')
         else:
             print(f"Unknown instruction type: {instruction_type}")
 

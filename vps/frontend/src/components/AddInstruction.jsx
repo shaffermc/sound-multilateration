@@ -86,6 +86,7 @@ const AddInstruction = () => {
             <option value="sound_request">Sound Request</option>
             <option value="erase_recordings">Erase Recordings</option>
             <option value="reboot">Reboot</option>
+            <option value="shutdown">Shutdown</option>
           </select>
         </div>
 
