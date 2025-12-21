@@ -5,19 +5,23 @@ const RetrievalStatus = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchInstructions = async () => {
-    try {
-      const response = await fetch(`/sound-locator/api/instructions/get_instructions`);
-      if (!response.ok) throw new Error('Failed to fetch instructions');
-      const data = await response.json();
-      const newest = data.slice(-10).reverse();
-      setInstructions(prev => JSON.stringify(prev) !== JSON.stringify(newest) ? newest : prev);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+const fetchInstructions = async () => {
+  try {
+    const response = await fetch(`/sound-locator/api/instructions/get_instructions`);
+    if (!response.ok) throw new Error('Failed to fetch instructions');
+    const data = await response.json();
+
+    // Filter for only instructions where instruction_type === "sound_request"
+    const soundInstructions = data.filter(inst => inst.instruction_type === "sound_request");
+
+    const newest = soundInstructions.slice(-10).reverse();
+    setInstructions(prev => JSON.stringify(prev) !== JSON.stringify(newest) ? newest : prev);
+    setLoading(false);
+  } catch (err) {
+    setError(err.message);
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchInstructions();
