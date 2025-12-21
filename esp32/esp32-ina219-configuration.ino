@@ -1,14 +1,17 @@
 #include <Wire.h>
-#include <Adafruit_BMP085.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <Adafruit_INA219.h>
 
-// This code sends the temperature and barometric pressure to an Express server every 10 minutes. 
-// It uses an ESP32-WROOM-DA module and BMP180 sensor. 
+// This code sends two voltage readings to an Express server every 5 minutes.
+// It uses an ESP32-WROOM-DA module and two INA219 sensors.
 
-Adafruit_BMP085 bmp; // Initialize BMP180 sensor on D23 (SDA) and D22 (SCL)
 const char* ssid = "x";
 const char* password = "x";
+
+// Create INA219 objects for both modules
+Adafruit_INA219 solarPanelINA;
+Adafruit_INA219 batteryINA(0x41);  // Second INA219 with I2C address 0x41
 
 unsigned long uptime = 0;
 unsigned long lastPowerOnTime = 0;
@@ -21,14 +24,16 @@ const unsigned long restartInterval = 86400000; // Restart every day
 String ipAddress = "209.46.124.94"; // Variable to store the IP address
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("BMP180 Sensor");
-  lastPowerOnTime = millis();
-  Wire.begin(22, 23); // Initialize I2C communication with D23 as SDA and D22 as SCL
-  bmp.begin();
 
+  Serial.begin(9600);
+  lastPowerOnTime = millis();
   // Connect to Wi-Fi
   connectToWiFi();
+  // Initialize both INA219 modules
+  solarPanelINA.begin();   // Solar panel module
+  batteryINA.begin();      // Battery module
+
+  Serial.println("Starting INA219 readings...");
 
 }
 
@@ -36,41 +41,30 @@ void loop() {
   
   checkWiFiConnection();
   
-  String wifiUptimeToSend = updateWiFiConnectedTimeString();
-  String esp32UptimeToSend = updateUptimeString();
-  sendEventData("Station 1", "ESP32-06", "Wifi Uptime", wifiUptimeToSend, "Time");
-  sendEventData("Station 1", "ESP32-06", "System Uptime", esp32UptimeToSend, "Time");
+    String wifiUptimeToSend = updateWiFiConnectedTimeString();
+    String esp32UptimeToSend = updateUptimeString();
+    sendEventData("Station 1", "ESP32-12", "Wifi Uptime", wifiUptimeToSend, "Time");
+    sendEventData("Station 1", "ESP32-12", "System Uptime", esp32UptimeToSend, "Time");
 
-  // Read temperature from BMP180
-  float BMP180_temp_C = bmp.readTemperature(); // Temperature in Celsius
 
-  if (BMP180_temp_C != 0xFFFF) { // Check if the reading is valid
-    float BMP180_temp_F = (BMP180_temp_C * 9 / 5) + 32; // Convert to Fahrenheit
-    Serial.print("BMP180 - Temperature: ");
-    Serial.print(BMP180_temp_F);
-    Serial.println(" °F");
-    Serial.println();
-    Serial.println("Sending BMP180 temperature data...");
-    sendData("ESP32-06", "BMP180", "Temperature", String(BMP180_temp_F, 2), "Fahrenheit");
+    float solarVoltage = solarPanelINA.getBusVoltage_V();
+    float batteryVoltage = batteryINA.getBusVoltage_V();
+
+  if (solarVoltage != 0xFFFF) {
+    Serial.println("Sending Solar Panel Voltage Data..");
+    sendData("ESP32-12", "INA219", "Solar Panel Voltage", String(solarVoltage, 2), "Volts");
   } else {
-    Serial.println("Failed to read temperature from BMP180 sensor. Please check wiring.");
+    Serial.println("Failed to read voltage from INA219 sensor. Please check wiring.");
   }
 
-  // Read pressure from BMP180
-  float BMP180_pressure = bmp.readPressure(); // Pressure in Pa
-
-  if (BMP180_pressure != 0) { // Check if the reading is valid
-    Serial.print("Pressure: ");
-    Serial.print(BMP180_pressure / 100.0); // Convert Pa to hPa
-    Serial.println(" hPa");
-    Serial.println();
-    Serial.println("Sending BMP180 pressure data...");
-    sendData("ESP32-06", "BMP180", "Barometric Pressure", String(BMP180_pressure / 100.0, 2), "hPa");
+  if (batteryVoltage != 0xFFFF) {
+    Serial.println("Sending Battery Voltage Data..");
+    sendData("ESP32-12", "INA219", "Battery Voltage", String(batteryVoltage, 2), "Volts");
   } else {
-    Serial.println("Failed to read pressure from BMP180 sensor. Please check wiring.");
+    Serial.println("Failed to read voltage from INA219 sensor. Please check wiring.");
   }
 
-  int count = 60;
+  int count = 300;
   while (count > 0) {
     Serial.println(count);
     count = count - 1;
