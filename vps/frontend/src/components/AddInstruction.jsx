@@ -104,6 +104,10 @@ const AddInstruction = () => {
             <option value="2">Station 2</option>
             <option value="3">Station 3</option>
             <option value="4">Station 4</option>
+            <option value="S1E1">Station 1, ESP32-1</option>
+            <option value="S2E1">Station 2, ESP32-1</option>
+            <option value="S3E1">Station 3, ESP32-1</option>
+            <option value="S4E1">Station 4, ESP32-1</option>
           </select>
         </div>
 
