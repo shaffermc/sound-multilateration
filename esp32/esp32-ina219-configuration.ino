@@ -3,196 +3,206 @@
 #include <WiFi.h>
 #include <Adafruit_INA219.h>
 
-// This code sends two voltage readings to an Express server every 10 minutes.
-// It uses an ESP32-WROOM-DA module and two INA219 sensors.
-
+// =====================
+// Configuration
+// =====================
 const char* ssid = "x";
 const char* password = "x";
 
-// Create INA219 objects for both modules
-Adafruit_INA219 solarPanelINA;
-Adafruit_INA219 batteryINA(0x41);  // Second INA219 with I2C address 0x41
+const char* DEVICE_LOCATION = "Station 1";
+const char* DEVICE_NAME = "ESP32-12";
+const char* SENSOR_NAME = "INA219";
 
-unsigned long uptime = 0;
-unsigned long lastPowerOnTime = 0;
-unsigned long wifiUptime = 0;
-unsigned long wifiTimeOfLastConnection = 0;
- 
+String ipAddress = "209.46.124.94";
+const int serverPort = 3000;
+
+// Timing
+const unsigned long SEND_INTERVAL = 600000UL;       // 10 minutes
+const unsigned long RESTART_INTERVAL = 86400000UL;  // 24 hours
+
+// =====================
+// Globals
+// =====================
+Adafruit_INA219 solarPanelINA;        // Default address 0x40
+Adafruit_INA219 batteryINA(0x44);     // Second INA219
+
+unsigned long lastSendTime = 0;
 unsigned long lastRestartTime = 0;
-const unsigned long restartInterval = 86400000; // Restart every day
+unsigned long lastPowerOnTime = 0;
+unsigned long wifiTimeOfLastConnection = 0;
 
-String ipAddress = "209.46.124.94"; // Variable to store the IP address
-
+// =====================
+// Setup
+// =====================
 void setup() {
+  Serial.begin(115200);
+  Serial.println("ESP32 INA219 Starting...");
 
-  Serial.begin(9600);
   lastPowerOnTime = millis();
-  // Connect to Wi-Fi
+  lastRestartTime = millis();
+
+  Wire.begin();  // Initialize I2C
+
   connectToWiFi();
-  // Initialize both INA219 modules
-  solarPanelINA.begin();   // Solar panel module
-  batteryINA.begin();      // Battery module
 
-  Serial.println("Starting INA219 readings...");
+  if (!solarPanelINA.begin()) {
+    Serial.println("Failed to find Solar INA219");
+  }
+  if (!batteryINA.begin()) {
+    Serial.println("Failed to find Battery INA219");
+  }
 
+  // Calibration (adjust if needed)
+  solarPanelINA.setCalibration_32V_2A();
+  batteryINA.setCalibration_32V_2A();
 }
 
+// =====================
+// Loop
+// =====================
 void loop() {
-  
   checkWiFiConnection();
-  
-    String wifiUptimeToSend = updateWiFiConnectedTimeString();
-    String esp32UptimeToSend = updateUptimeString();
-    sendEventData("Station 1", "ESP32-12", "Wifi Uptime", wifiUptimeToSend, "Time");
-    sendEventData("Station 1", "ESP32-12", "System Uptime", esp32UptimeToSend, "Time");
+  checkRestartESP32();
 
+  if (millis() - lastSendTime >= SEND_INTERVAL) {
+    lastSendTime = millis();
+    sendAllData();
+  }
+}
 
-    float solarVoltage = solarPanelINA.getBusVoltage_V();
-    float batteryVoltage = batteryINA.getBusVoltage_V();
+// =====================
+// Main Data Send
+// =====================
+void sendAllData() {
+  String wifiUptime = updateWiFiConnectedTimeString();
+  String systemUptime = updateUptimeString();
 
-  if (solarVoltage != 0xFFFF) {
-    Serial.println("Sending Solar Panel Voltage Data..");
-    sendData("ESP32-12", "INA219", "Solar Panel Voltage", String(solarVoltage, 2), "Volts");
+  sendEventData(DEVICE_LOCATION, DEVICE_NAME, "Wifi Uptime", wifiUptime, "Time");
+  sendEventData(DEVICE_LOCATION, DEVICE_NAME, "System Uptime", systemUptime, "Time");
+
+  float solarVoltage = solarPanelINA.getBusVoltage_V();
+  float batteryVoltage = batteryINA.getBusVoltage_V();
+
+  if (!isnan(solarVoltage) && solarVoltage > 0.0 && solarVoltage < 40.0) {
+    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
+             "Solar Panel Voltage", String(solarVoltage, 2), "Volts");
   } else {
-    Serial.println("Failed to read voltage from INA219 sensor. Please check wiring.");
+    Serial.println("Invalid solar panel voltage reading");
   }
 
-  if (batteryVoltage != 0xFFFF) {
-    Serial.println("Sending Battery Voltage Data..");
-    sendData("ESP32-12", "INA219", "Battery Voltage", String(batteryVoltage, 2), "Volts");
+  if (!isnan(batteryVoltage) && batteryVoltage > 0.0 && batteryVoltage < 40.0) {
+    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
+             "Battery Voltage", String(batteryVoltage, 2), "Volts");
   } else {
-    Serial.println("Failed to read voltage from INA219 sensor. Please check wiring.");
-  }
-
-  int count = 600;
-  while (count > 0) {
-    Serial.println(count);
-    count = count - 1;
-    delay(1000);
+    Serial.println("Invalid battery voltage reading");
   }
 }
 
-void sendEventData(String esp32_location, String esp32_name, String esp32_event_type, String esp32_event_value, String esp32_event_units) {
-  String data = "esp32_location=" + esp32_location + "&esp32_name=" + esp32_name + "&esp32_event_type=" + esp32_event_type + "&esp32_event_value=" + esp32_event_value +"&esp32_event_units=" + esp32_event_units;
-  Serial.println(data);
-  sendPostRequestSensorEvent(data);
+// =====================
+// HTTP Helpers
+// =====================
+void sendEventData(String location, String name, String type, String value, String units) {
+  String data =
+    "esp32_location=" + location +
+    "&esp32_name=" + name +
+    "&esp32_event_type=" + type +
+    "&esp32_event_value=" + value +
+    "&esp32_event_units=" + units;
+
+  sendPostRequest("/esp32/add_esp32_event", data);
 }
 
-void sendData(String esp32_location, String esp32_name, String esp32_sensor_type, String esp32_sensor_reading, String esp32_sensor_units) {
-  String data = "esp32_location=" + esp32_location + "&esp32_name=" + esp32_name + "&esp32_sensor_type=" + esp32_sensor_type + "&esp32_sensor_reading=" + esp32_sensor_reading + "&esp32_sensor_units=" + esp32_sensor_units;
-  Serial.println(data);
-  sendPostRequest(data);
+void sendData(String location, String name, String sensor, String readingType, String value, String units) {
+  String data =
+    "esp32_location=" + location +
+    "&esp32_name=" + name +
+    "&esp32_sensor_type=" + readingType +
+    "&esp32_sensor_reading=" + value +
+    "&esp32_sensor_units=" + units;
+
+  sendPostRequest("/esp32/add_esp32_data", data);
 }
 
-void sendPostRequest(String data) {
+void sendPostRequest(const char* path, String payload) {
   HTTPClient http;
-  
-  if (http.begin(ipAddress, 3000, "/esp32/add_esp32_data")) { // Begin the HTTP POST request with the provided IP and port
+
+  if (http.begin(ipAddress.c_str(), serverPort, path)) {
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    
-    int httpResponseCode = http.POST(data); // Send the POST request with the data
-    
-    if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
-      String response = http.getString(); // Get the response from the server
-      Serial.println(response);
-    } else {
-      Serial.print("Error sending POST request. HTTP error code: ");
-      Serial.println(httpResponseCode);
-    }
-    
-    http.end(); // Close the connection
+    int code = http.POST(payload);
+
+    Serial.print("HTTP ");
+    Serial.print(path);
+    Serial.print(" -> ");
+    Serial.println(code);
+
+    http.end();
   } else {
-    Serial.println("Unable to connect to server");
+    Serial.println("HTTP begin failed");
   }
 }
 
-void sendPostRequestSensorEvent(String data) {
-  HTTPClient http;
-  
-  if (http.begin(ipAddress.c_str(), 3000, "/esp32/add_esp32_event")) { // Begin the HTTP POST request with the provided IP and port
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    
-    int httpResponseCode = http.POST(data); // Send the POST request with the data
-    
-    if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
-      String response = http.getString(); // Get the response from the server
-      Serial.println(response);
-    } else {
-      Serial.print("Error sending POST request. HTTP error code: ");
-      Serial.println(httpResponseCode);
-    }
-    
-    http.end(); // Close the connection
-  } else {
-    Serial.println("Unable to connect to server");
-  }
-}
-
+// =====================
+// WiFi
+// =====================
 void connectToWiFi() {
-  Serial.print("Connecting to Wi-Fi");
+  Serial.print("Connecting to WiFi");
   WiFi.begin(ssid, password);
-  int attempt = 0;
-  while (WiFi.status() != 3) {
-    delay(5000);
-    Serial.print(WiFi.status());
-    if(WiFi.status() == 3) {
-      wifiTimeOfLastConnection = millis();
-      break;
-    }
-    WiFi.begin(ssid, password);
-    attempt++;
-    if (attempt > 20) {
-      Serial.println("\nFailed to connect to Wi-Fi. Restarting...");
+
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+    attempts++;
+    if (attempts > 20) {
+      Serial.println("\nWiFi failed, restarting...");
       ESP.restart();
     }
   }
-  Serial.println("Connected to Wi-Fi");
-  Serial.println("IP Address: " + WiFi.localIP().toString());
+
+  wifiTimeOfLastConnection = millis();
+  Serial.println("\nWiFi connected");
+  Serial.println(WiFi.localIP());
 }
 
 void checkWiFiConnection() {
-  if (WiFi.status() != 3) {
-    Serial.println("WiFi connection lost. Attempting to reconnect...");
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi lost, reconnecting...");
     connectToWiFi();
   }
 }
 
+// =====================
+// Restart Logic
+// =====================
 void checkRestartESP32() {
-  if ((millis() - lastRestartTime) >= restartInterval) {
+  if (millis() - lastRestartTime >= RESTART_INTERVAL) {
     ESP.restart();
   }
 }
 
-String twoDigits(unsigned long number) {
-  if (number < 10) {
-    return "0" + String(number);
-  } else {
-    return String(number);
-  }
-
+// =====================
+// Time Helpers
+// =====================
+String twoDigits(unsigned long n) {
+  return (n < 10) ? "0" + String(n) : String(n);
 }
 
 String updateWiFiConnectedTimeString() {
-  unsigned long connectedTime = millis() - wifiTimeOfLastConnection;
-  unsigned long hours = (connectedTime / (1000 * 60 * 60)) % 24;
-  unsigned long minutes = (connectedTime / (1000 * 60)) % 60;
-  unsigned long seconds = (connectedTime / 1000) % 60;
-  String wifiConnectedTimeString = twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds);
-  return wifiConnectedTimeString;
+  unsigned long t = millis() - wifiTimeOfLastConnection;
+  return twoDigits((t / 3600000) % 24) + ":" +
+         twoDigits((t / 60000) % 60) + ":" +
+         twoDigits((t / 1000) % 60);
 }
 
 String updateUptimeString() {
-  unsigned long uptime = millis() - lastPowerOnTime;
-  unsigned long days = uptime / (1000 * 60 * 60 * 24);
-  unsigned long hours = (uptime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
-  unsigned long minutes = (uptime % (1000 * 60 * 60)) / (1000 * 60);
-  unsigned long seconds = (uptime % (1000 * 60)) / 1000;
-  String uptimeString = String(days) + "d " + twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds);
-  return uptimeString;
+  unsigned long t = millis() - lastPowerOnTime;
+  unsigned long days = t / 86400000UL;
+  unsigned long hours = (t / 3600000UL) % 24;
+  unsigned long minutes = (t / 60000UL) % 60;
+  unsigned long seconds = (t / 1000UL) % 60;
+
+  return String(days) + "d " +
+         twoDigits(hours) + ":" +
+         twoDigits(minutes) + ":" +
+         twoDigits(seconds);
 }
-
-
