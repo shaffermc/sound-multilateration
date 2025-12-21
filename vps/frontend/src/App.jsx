@@ -3,7 +3,7 @@ import "./App.css";
 
 import RetrieveAudio from "./components/RetrieveAudio";
 import TDOAParameters from "./components/TDOAParameters";
-import CreatePlotJSON from "./components/CreatePlotJSON";
+import ManagePresets from "./components/ManagePresets";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
 import AudioFileList from "./components/AudioFileList";
@@ -21,7 +21,7 @@ export default function App() {
     <div style={styles.sidebar}>
       <div style={titleStyle}>Sound Source Locator</div>
       <div style={sectionHeaderStyle}>Enter base station coordinates:</div>
-      <div><CreatePlotJSON onResult={setResult} /></div>
+      <div><ManagePresets onResult={setResult} /></div>
       <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
       <RetrieveAudio />
       <RetrievalStatus />

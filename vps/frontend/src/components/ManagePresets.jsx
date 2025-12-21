@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function CreatePlotJSON({ onResult }) {
+function ManagePresets({ onResult }) {
 
   const [dbPresets, setDbPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState("");
@@ -197,4 +197,4 @@ function CreatePlotJSON({ onResult }) {
   );
 }
 
-export default CreatePlotJSON;
+export default ManagePresets;

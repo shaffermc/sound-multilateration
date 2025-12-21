@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <Adafruit_INA219.h>
 
-// This code sends two voltage readings to an Express server every 5 minutes.
+// This code sends two voltage readings to an Express server every 10 minutes.
 // It uses an ESP32-WROOM-DA module and two INA219 sensors.
 
 const char* ssid = "x";
@@ -64,7 +64,7 @@ void loop() {
     Serial.println("Failed to read voltage from INA219 sensor. Please check wiring.");
   }
 
-  int count = 300;
+  int count = 600;
   while (count > 0) {
     Serial.println(count);
     count = count - 1;

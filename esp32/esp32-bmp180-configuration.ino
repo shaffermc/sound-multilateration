@@ -70,7 +70,7 @@ void loop() {
     Serial.println("Failed to read pressure from BMP180 sensor. Please check wiring.");
   }
 
-  int count = 60;
+  int count = 600;
   while (count > 0) {
     Serial.println(count);
     count = count - 1;
