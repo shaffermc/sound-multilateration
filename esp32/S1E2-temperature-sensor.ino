@@ -1,32 +1,40 @@
-#include <Wire.h>
+#include <DHT.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
-#include <Adafruit_INA219.h>
+
+// This program sends the temperature and other weather data to a remote server. 
 
 // =====================
 // Configuration
 // =====================
-const char* ssid = "x";
-const char* password = "x";
+#define DHT_PIN 5
+#define DHT_TYPE DHT22
+
+const char* ssid = "";
+const char* password = "";
 
 const char* DEVICE_LOCATION = "Station 1";
-const char* DEVICE_NAME = "ESP32-12";
-const char* SENSOR_NAME = "INA219";
+const char* DEVICE_NAME = "S1E2";
+const char* SENSOR_NAME = "DHT22";
 
 String ipAddress = "209.46.124.94";
 const int serverPort = 3000;
 
 // Timing
-const unsigned long SEND_INTERVAL = 600000UL;       // 10 minutes
-const unsigned long RESTART_INTERVAL = 86400000UL;  // 24 hours
+const unsigned long BASE_SEND_INTERVAL = 600000UL;       // 10 minutes
+const unsigned long RESTART_INTERVAL = 86400000UL;       // 24 hours
+unsigned long lastSendTime = 0;
+unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with random offset
+
+// Dew point constants
+const float A = 17.271;
+const float B = 237.7;
 
 // =====================
 // Globals
 // =====================
-Adafruit_INA219 solarPanelINA;        // Default address 0x40
-Adafruit_INA219 batteryINA(0x44);     // Second INA219
+DHT dht(DHT_PIN, DHT_TYPE);
 
-unsigned long lastSendTime = 0;
 unsigned long lastRestartTime = 0;
 unsigned long lastPowerOnTime = 0;
 unsigned long wifiTimeOfLastConnection = 0;
@@ -36,25 +44,13 @@ unsigned long wifiTimeOfLastConnection = 0;
 // =====================
 void setup() {
   Serial.begin(115200);
-  Serial.println("ESP32 INA219 Starting...");
+  Serial.println("ESP32 DHT22 Starting...");
 
   lastPowerOnTime = millis();
   lastRestartTime = millis();
 
-  Wire.begin();  // Initialize I2C
-
   connectToWiFi();
-
-  if (!solarPanelINA.begin()) {
-    Serial.println("Failed to find Solar INA219");
-  }
-  if (!batteryINA.begin()) {
-    Serial.println("Failed to find Battery INA219");
-  }
-
-  // Calibration (adjust if needed)
-  solarPanelINA.setCalibration_32V_2A();
-  batteryINA.setCalibration_32V_2A();
+  dht.begin();
 }
 
 // =====================
@@ -64,9 +60,12 @@ void loop() {
   checkWiFiConnection();
   checkRestartESP32();
 
-  if (millis() - lastSendTime >= SEND_INTERVAL) {
+  if (millis() - lastSendTime >= sendInterval) {
     lastSendTime = millis();
     sendAllData();
+
+    // Add a small random offset for the next interval (±1 minute)
+    sendInterval = BASE_SEND_INTERVAL + random(-60000, 60000);
   }
 }
 
@@ -80,22 +79,26 @@ void sendAllData() {
   sendEventData(DEVICE_LOCATION, DEVICE_NAME, "Wifi Uptime", wifiUptime, "Time");
   sendEventData(DEVICE_LOCATION, DEVICE_NAME, "System Uptime", systemUptime, "Time");
 
-  float solarVoltage = solarPanelINA.getBusVoltage_V();
-  float batteryVoltage = batteryINA.getBusVoltage_V();
+  float tempC = dht.readTemperature();
+  float humidity = dht.readHumidity();
 
-  if (!isnan(solarVoltage) && solarVoltage > 0.0 && solarVoltage < 40.0) {
-    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
-             "Solar Panel Voltage", String(solarVoltage, 2), "Volts");
-  } else {
-    Serial.println("Invalid solar panel voltage reading");
+  if (isnan(tempC) || isnan(humidity)) {
+    Serial.println("Failed to read from DHT sensor");
+    return;
   }
 
-  if (!isnan(batteryVoltage) && batteryVoltage > 0.0 && batteryVoltage < 40.0) {
-    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
-             "Battery Voltage", String(batteryVoltage, 2), "Volts");
-  } else {
-    Serial.println("Invalid battery voltage reading");
-  }
+  float tempF = (tempC * 9.0 / 5.0) + 32.0;
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Temperature", String(tempF, 2), "Fahrenheit");
+
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Humidity", String(humidity, 2), "percent");
+
+  float dewPointC = computeDewPoint(tempC, humidity);
+  float dewPointF = (dewPointC * 9.0 / 5.0) + 32.0;
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Dew Point", String(dewPointF, 2), "Fahrenheit");
+
+  float heatIndexC = computeHeatIndex(tempC, humidity);
+  float heatIndexF = (heatIndexC * 9.0 / 5.0) + 32.0;
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Heat Index", String(heatIndexF, 2), "Fahrenheit");
 }
 
 // =====================
@@ -205,4 +208,29 @@ String updateUptimeString() {
          twoDigits(hours) + ":" +
          twoDigits(minutes) + ":" +
          twoDigits(seconds);
+}
+
+float computeDewPoint(float temperature_C, float humidity) {
+  float gamma = (A * temperature_C) / (B + temperature_C) + log(humidity / 100.0);
+  float dewPoint_C = (B * gamma) / (A - gamma);
+  return dewPoint_C;
+}
+
+float computeHeatIndex(float temperature, float humidity) {
+  float c1, c2, c3, c4, c5, c6, c7, c8, c9;
+  
+  // Coefficients for Celsius
+  c1 = -8.78469475556;
+  c2 = 1.61139411;
+  c3 = 2.33854883889;
+  c4 = -0.14611605;
+  c5 = -0.012308094;
+  c6 = -0.0164248277778;
+  c7 = 0.002211732;
+  c8 = 0.00072546;
+  c9 = -0.000003582;
+  
+  float HI = c1 + c2 * temperature + c3 * humidity + c4 * temperature * humidity + c5 * temperature * temperature + c6 * humidity * humidity + c7 * temperature * temperature * humidity + c8 * temperature * humidity * humidity + c9 * temperature * temperature * humidity * humidity;
+  
+  return HI;
 }
