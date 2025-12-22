@@ -11,8 +11,7 @@ const Esp32Dashboard = () => {
     const fetchRecent = async () => {
       try {
         const [eventsRes, dataRes] = await Promise.all([
-          axios.get('/sound-locator/api/esp32/esp32-events/latest-by-device'),
-          axios.get('/sound-locator/api/esp32/esp32-data/latest-by-device'),
+          axios.get('/sound-locator/api/esp32/esp32-data/latest-snapshot'),
         ]);
 
         setEvents(eventsRes.data);

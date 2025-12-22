@@ -150,51 +150,41 @@ router.get('/esp32-data/voltage-chart', async (req, res) => {
     }
 });
 
-// GET latest ESP32 sensor data per device
-router.get('/esp32-data/latest-by-device', async (req, res) => {
+// GET latest sensor readings per device (one per sensor type)
+router.get('/esp32-data/latest-snapshot', async (req, res) => {
   try {
     const devices = ['S1E1', 'S1E2', 'S1E3'];
 
     const data = await esp32Data.aggregate([
-      { $match: { esp32_name: { $in: devices } } },
-      { $sort: { timestamp: -1 } },
       {
-        $group: {
-          _id: '$esp32_name',
-          doc: { $first: '$$ROOT' }
+        $match: {
+          esp32_name: { $in: devices }
         }
       },
-      { $replaceRoot: { newRoot: '$doc' } }
+      {
+        $sort: { timestamp: -1 }
+      },
+      {
+        $group: {
+          _id: {
+            esp32_name: '$esp32_name',
+            esp32_sensor_type: '$esp32_sensor_type'
+          },
+          doc: { $first: '$$ROOT' } // newest per sensor
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$doc' }
+      },
+      {
+        $sort: { esp32_name: 1, esp32_sensor_type: 1 }
+      }
     ]);
 
     res.json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error fetching latest ESP32 data' });
-  }
-});
-
-// GET latest ESP32 event per device
-router.get('/esp32-events/latest-by-device', async (req, res) => {
-  try {
-    const devices = ['S1E1', 'S1E2', 'S1E3'];
-
-    const events = await esp32Event.aggregate([
-      { $match: { esp32_name: { $in: devices } } },
-      { $sort: { timestamp: -1 } },
-      {
-        $group: {
-          _id: '$esp32_name',
-          doc: { $first: '$$ROOT' }
-        }
-      },
-      { $replaceRoot: { newRoot: '$doc' } }
-    ]);
-
-    res.json(events);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching latest ESP32 events' });
+    res.status(500).json({ error: 'Error fetching latest sensor snapshot' });
   }
 });
 
