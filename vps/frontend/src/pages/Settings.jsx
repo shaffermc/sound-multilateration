@@ -4,14 +4,14 @@ import InstructionsList from "../components/InstructionsList";
 import BandwidthDisplay from "../components/BandwidthDisplay";
 import StationStatus from "../components/StationStatus";
 import VoltageChart from "../components/VoltageChart";
-import { useDeviceSocket } from "../components/useDeviceSocket";
+//import { useDeviceSocket } from "../components/useDeviceSocket";
 
 
 export default function Settings() {
   const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const to = new Date().toISOString();
 
-  useDeviceSocket();
+  //useDeviceSocket();
 
   return (
     <div style={{ padding: "2rem" }}>
