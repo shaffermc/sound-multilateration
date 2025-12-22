@@ -141,20 +141,6 @@ const StationStatus = () => {
               </td>
             ))}
           </tr>
-
-          {/* Future Sensors */}
-          <tr>
-            <th>T</th>
-            <td></td>
-          </tr>
-          <tr>
-            <th>H</th>
-            <td></td>
-          </tr>
-          <tr>
-            <th>V</th>
-            <td></td>
-          </tr>
         </tbody>
       </table>
     </div>
