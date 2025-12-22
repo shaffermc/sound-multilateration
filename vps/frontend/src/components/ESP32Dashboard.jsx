@@ -7,25 +7,26 @@ const Esp32Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchRecent = async () => {
-      try {
-        const [eventsRes, dataRes] = await Promise.all([
-          axios.get('/sound-locator/api/esp32/esp32-data/latest-snapshot'),
-        ]);
+useEffect(() => {
+  const fetchRecent = async () => {
+    try {
+      const [eventsRes, dataRes] = await Promise.all([
+        axios.get('/sound-locator/api/esp32/esp32-events/latest-by-device'),
+        axios.get('/sound-locator/api/esp32/esp32-data/latest-snapshot'),
+      ]);
 
-        setEvents(eventsRes.data);
-        setSensorData(dataRes.data);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch ESP32 data');
-        setLoading(false);
-      }
-    };
+      setEvents(eventsRes.data);
+      setSensorData(dataRes.data);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch ESP32 data');
+      setLoading(false);
+    }
+  };
 
-    fetchRecent();
-  }, []);
+  fetchRecent();
+}, []);
 
   if (loading) return <p>Loading ESP32 dashboard...</p>;
   if (error) return <p>{error}</p>;

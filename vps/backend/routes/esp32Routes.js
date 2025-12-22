@@ -188,5 +188,27 @@ router.get('/esp32-data/latest-snapshot', async (req, res) => {
   }
 });
 
+// GET latest event per device
+router.get('/esp32-events/latest-by-device', async (req, res) => {
+  try {
+    const devices = ['S1E1', 'S1E2', 'S1E3'];
+    const events = await esp32Event.aggregate([
+      { $match: { esp32_name: { $in: devices } } },
+      { $sort: { timestamp: -1 } },
+      {
+        $group: {
+          _id: '$esp32_name',
+          doc: { $first: '$$ROOT' }
+        }
+      },
+      { $replaceRoot: { newRoot: '$doc' } }
+    ]);
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching latest ESP32 events' });
+  }
+});
+
 
 module.exports = router;
