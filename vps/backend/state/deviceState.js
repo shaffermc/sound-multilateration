@@ -79,3 +79,5 @@ setInterval(() => {
     }
   }
 }, 5000)
+
+module.exports = { handleDeviceUpdate }
