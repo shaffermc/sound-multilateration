@@ -10,10 +10,9 @@ const Esp32Dashboard = () => {
   useEffect(() => {
     const fetchRecent = async () => {
       try {
-        const minutes = 11; // last 10 minutes
         const [eventsRes, dataRes] = await Promise.all([
-          axios.get(`/sound-locator/api/esp32/esp32-events/recent-by-time?minutes=${minutes}`),
-          axios.get(`/sound-locator/api/esp32/esp32-data/recent-by-time?minutes=${minutes}`),
+          axios.get('/sound-locator/api/esp32/esp32-events/latest-by-device'),
+          axios.get('/sound-locator/api/esp32/esp32-data/latest-by-device'),
         ]);
 
         setEvents(eventsRes.data);

@@ -97,43 +97,6 @@ router.get('/esp32-events/recent', async (req, res) => {
   }
 });
 
-// GET recent ESP32 data in last N minutes
-router.get('/esp32-data/recent-by-time', async (req, res) => {
-  try {
-    const minutes = parseInt(req.query.minutes) || 10;
-    const since = new Date(Date.now() - minutes * 60 * 1000);
-
-    const recentData = await esp32Data.find({ timestamp: { $gte: since } }).sort({ timestamp: -1 });
-
-    if (!recentData || recentData.length === 0)
-      return res.status(404).json({ message: 'No data found' });
-
-    res.json(recentData);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching recent data' });
-  }
-});
-
-// GET recent ESP32 events in last N minutes
-router.get('/esp32-events/recent-by-time', async (req, res) => {
-  try {
-    const minutes = parseInt(req.query.minutes) || 10;
-    const since = new Date(Date.now() - minutes * 60 * 1000);
-
-    const recentEvents = await esp32Event.find({ timestamp: { $gte: since } }).sort({ timestamp: -1 });
-
-    if (!recentEvents || recentEvents.length === 0)
-      return res.status(404).json({ message: 'No events found' });
-
-    res.json(recentEvents);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching recent events' });
-  }
-});
-
-
 // GET route to fetch voltage chart data
 // /esp32-data/voltage-chart?from=ISO&to=ISO&interval=minutes
 router.get('/esp32-data/voltage-chart', async (req, res) => {
@@ -187,6 +150,53 @@ router.get('/esp32-data/voltage-chart', async (req, res) => {
     }
 });
 
+// GET latest ESP32 sensor data per device
+router.get('/esp32-data/latest-by-device', async (req, res) => {
+  try {
+    const devices = ['S1E1', 'S1E2', 'S1E3'];
+
+    const data = await esp32Data.aggregate([
+      { $match: { esp32_name: { $in: devices } } },
+      { $sort: { timestamp: -1 } },
+      {
+        $group: {
+          _id: '$esp32_name',
+          doc: { $first: '$$ROOT' }
+        }
+      },
+      { $replaceRoot: { newRoot: '$doc' } }
+    ]);
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching latest ESP32 data' });
+  }
+});
+
+// GET latest ESP32 event per device
+router.get('/esp32-events/latest-by-device', async (req, res) => {
+  try {
+    const devices = ['S1E1', 'S1E2', 'S1E3'];
+
+    const events = await esp32Event.aggregate([
+      { $match: { esp32_name: { $in: devices } } },
+      { $sort: { timestamp: -1 } },
+      {
+        $group: {
+          _id: '$esp32_name',
+          doc: { $first: '$$ROOT' }
+        }
+      },
+      { $replaceRoot: { newRoot: '$doc' } }
+    ]);
+
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching latest ESP32 events' });
+  }
+});
 
 
 module.exports = router;
