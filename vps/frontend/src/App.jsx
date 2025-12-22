@@ -7,14 +7,18 @@ import ManagePresets from "./components/ManagePresets";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
 import AudioFileList from "./components/AudioFileList";
-import ESP32Dashboard from "./components/ESP32Dashboard";
-import StationStatus from "./components/StationStatus";
-import InstructionsList from "./components/InstructionsList";
-import AddInstruction from "./components/AddInstruction";
+import Settings from "./pages/Settings";
 
 export default function App() {
   const [result, setResult] = useState(null);
 
+  const params = new URLSearchParams(window.location.search);
+  const isSettingsPage = params.has("settings");
+
+  if (isSettingsPage) {
+    return <Settings />;
+  }
+  
   return (
   <div style={styles.container}>
     {/* LEFT SIDEBAR (20%) */}
@@ -37,10 +41,6 @@ export default function App() {
           onResult={setResult}
         />
       </div>
-      <div><StationStatus /></div>
-      <div><ESP32Dashboard /></div>
-      <div><InstructionsList /></div>
-      <div><AddInstruction /></div>
     </div>
 
     {/* RIGHT MAP PANEL (80%) */}
