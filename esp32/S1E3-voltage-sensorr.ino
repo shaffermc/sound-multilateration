@@ -21,7 +21,7 @@ const int serverPort = 3000;
 // =====================
 // Timing
 // =====================
-const unsigned long BASE_SEND_INTERVAL = 600000UL;       // 10 minutes
+const unsigned long BASE_SEND_INTERVAL = 300000UL;       // 5 minutes
 const unsigned long RESTART_INTERVAL = 86400000UL;       // 24 hours
 unsigned long lastSendTime = 0;
 unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with random offset
@@ -91,19 +91,19 @@ void sendAllData() {
   float solarVoltage = solarPanelINA.getBusVoltage_V();
   float batteryVoltage = batteryINA.getBusVoltage_V();
 
-  if (!isnan(solarVoltage) && solarVoltage > 0.0 && solarVoltage < 40.0) {
-    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
-             "Solar Panel Voltage", String(solarVoltage, 2), "Volts");
-  } else {
-    Serial.println("Invalid solar panel voltage reading");
+  // Clamp to 0-25V for logging in cold weather
+  if (isnan(solarVoltage) || solarVoltage < 0.0 || solarVoltage > 25.0) {
+      Serial.println("Solar panel voltage out of expected range, logging as 0V");
+      solarVoltage = 0.0;
   }
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "solar_voltage", String(solarVoltage, 2), "Volts");
 
-  if (!isnan(batteryVoltage) && batteryVoltage > 0.0 && batteryVoltage < 40.0) {
-    sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME,
-             "Battery Voltage", String(batteryVoltage, 2), "Volts");
-  } else {
-    Serial.println("Invalid battery voltage reading");
+  if (isnan(batteryVoltage) || batteryVoltage < 0.0 || batteryVoltage > 25.0) {
+      Serial.println("Battery voltage out of expected range, logging as 0V");
+      batteryVoltage = 0.0;
   }
+  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "battery_voltage", String(batteryVoltage, 2), "Volts");
+
 }
 
 // =====================

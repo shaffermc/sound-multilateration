@@ -2,133 +2,209 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-// This program allows rebooting a Raspberry Pi Zero remotely using a ESP32 module.
-
+// =====================
+// Configuration
+// =====================
 const char* ssid = "";
 const char* password = "";
+
+const char* DEVICE_LOCATION = "Station 1";
+const char* DEVICE_NAME = "S1E1";
+
+String ipAddress = "209.46.124.94";
+const int serverPort = 3000;
+
 const String serverURL = "http://209.46.124.94:3000";
-const String getInstructionEndpoint = "/instructions/get_instructions"; 
+const String getInstructionEndpoint = "/instructions/get_instructions";
 const String updateInstructionEndpoint = "/instructions/update_instructions/";
-const String deviceID = "S1E1"; // Station 1, ESP32 1
 
-const int RPI_RESET_PIN = 25; // GPIO pin connected to RPi reset
+const String deviceID = "S1E1";
 
-const unsigned long BASE_CHECK_INTERVAL = 600000; // 10 minutes
+const int RPI_RESET_PIN = 25;
+
+// Timing
+const unsigned long BASE_CHECK_INTERVAL = 600000UL; // 10 min
+const unsigned long RESTART_INTERVAL = 86400000UL;  // 24 hours
+
 unsigned long lastCheckTime = 0;
 unsigned long checkInterval = BASE_CHECK_INTERVAL;
+unsigned long lastRestartTime = 0;
+unsigned long lastPowerOnTime = 0;
+unsigned long wifiTimeOfLastConnection = 0;
 
+// =====================
+// Setup
+// =====================
 void setup() {
   Serial.begin(115200);
-  pinMode(RPI_RESET_PIN, OUTPUT);
-  digitalWrite(RPI_RESET_PIN, HIGH); // Pull high normally
+  Serial.println("ESP32 RPi Reboot Controller Starting...");
 
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected to Wi-Fi");
-  Serial.println("IP Address: " + WiFi.localIP().toString());
+  pinMode(RPI_RESET_PIN, OUTPUT);
+  digitalWrite(RPI_RESET_PIN, HIGH);
+
+  lastPowerOnTime = millis();
+  lastRestartTime = millis();
+
+  connectToWiFi();
 }
 
+// =====================
+// Loop
+// =====================
 void loop() {
+  checkWiFiConnection();
+  checkRestartESP32();
+
   if (millis() - lastCheckTime >= checkInterval) {
     lastCheckTime = millis();
-    checkForInstructions();
 
-    // Add a small random offset for the next interval (±1 minute)
-    checkInterval = BASE_CHECK_INTERVAL + random(-60000, 60000); // 10 min ± 1 min
+    checkForInstructions();
+    sendAllData();
+
+    checkInterval = BASE_CHECK_INTERVAL + random(-60000, 60000);
   }
 }
 
+// =====================
+// Instruction Handling
+// =====================
 void checkForInstructions() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi disconnected. Reconnecting...");
-    WiFi.reconnect();
+  HTTPClient http;
+  http.begin(serverURL + getInstructionEndpoint);
+
+  int httpCode = http.GET();
+  if (httpCode <= 0) {
+    Serial.println("Instruction fetch failed");
+    http.end();
     return;
   }
 
-  HTTPClient http;
-  String url = serverURL + getInstructionEndpoint;
-  http.begin(url);
-  int httpCode = http.GET();
+  DynamicJsonDocument doc(2048);
+  deserializeJson(doc, http.getString());
 
-  if (httpCode > 0) {
-    String payload = http.getString();
-    Serial.println("Server response: " + payload);
+  for (JsonObject instr : doc.as<JsonArray>()) {
+    if (instr["instruction_target"] == deviceID &&
+        instr["instruction_type"] == "reboot" &&
+        !instr["station1_complete"]) {
 
-    DynamicJsonDocument doc(2048);
-    DeserializationError error = deserializeJson(doc, payload);
-
-    if (!error) {
-      for (JsonObject instr : doc.as<JsonArray>()) {
-        String target = instr["instruction_target"];
-        String type = instr["instruction_type"];
-        String instrID = instr["_id"];
-
-        // Only check for reboot instructions targeted to this device
-        if (target == deviceID && type == "reboot") {
-          bool alreadyDone = false;
-
-          // Check station1_complete for your ESP32
-          if (instr.containsKey("station1_complete")) {
-            alreadyDone = instr["station1_complete"];
-          }
-
-          if (!alreadyDone) {
-            Serial.println("Reboot instruction received! Resetting RPi...");
-            triggerRpiReset();
-
-            // Mark station1_complete as true
-            markInstructionComplete(instrID);
-          } else {
-            Serial.println("Instruction already completed for station1, skipping.");
-          }
-        }
-      }
-    } else {
-      Serial.println("JSON parsing error: " + String(error.c_str()));
+      Serial.println("Reboot instruction received");
+      triggerRpiReset();
+      markInstructionComplete(instr["_id"]);
     }
-  } else {
-    Serial.println("Error fetching instructions, HTTP code: " + String(httpCode));
   }
 
   http.end();
 }
 
-
 void triggerRpiReset() {
-  digitalWrite(RPI_RESET_PIN, LOW); // Pull reset pin low
-  delay(500); // Hold low for 500ms
-  digitalWrite(RPI_RESET_PIN, HIGH); // Release reset
-  Serial.println("RPI reset pulse sent!");
+  digitalWrite(RPI_RESET_PIN, LOW);
+  delay(500);
+  digitalWrite(RPI_RESET_PIN, HIGH);
+  Serial.println("RPi reset triggered");
 }
 
 void markInstructionComplete(String instructionID) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi disconnected. Cannot mark instruction complete.");
-    return;
-  }
-
   HTTPClient http;
-  String url = serverURL + updateInstructionEndpoint + instructionID; 
-  http.begin(url);
+  http.begin(serverURL + updateInstructionEndpoint + instructionID);
   http.addHeader("Content-Type", "application/json");
 
-  // Mark station1_complete as true
-  String payload = "{\"station1_complete\":true}";
-
-  int httpCode = http.PUT(payload);
-
-  if (httpCode > 0) {
-    Serial.println("Instruction marked complete. HTTP code: " + String(httpCode));
-    String response = http.getString();
-    Serial.println("Response: " + response);
-  } else {
-    Serial.println("Error marking instruction complete, HTTP code: " + String(httpCode));
-  }
-
+  http.PUT("{\"station1_complete\":true}");
   http.end();
 }
 
+// =====================
+// Data Reporting
+// =====================
+void sendAllData() {
+  sendEventData(
+    DEVICE_LOCATION,
+    DEVICE_NAME,
+    "Wifi Uptime",
+    updateWiFiConnectedTimeString(),
+    "Time"
+  );
+
+  sendEventData(
+    DEVICE_LOCATION,
+    DEVICE_NAME,
+    "System Uptime",
+    updateUptimeString(),
+    "Time"
+  );
+}
+
+// =====================
+// HTTP Helpers
+// =====================
+void sendEventData(String location, String name, String type, String value, String units) {
+  String data =
+    "esp32_location=" + location +
+    "&esp32_name=" + name +
+    "&esp32_event_type=" + type +
+    "&esp32_event_value=" + value +
+    "&esp32_event_units=" + units;
+
+  sendPostRequest("/esp32/add_esp32_event", data);
+}
+
+void sendPostRequest(const char* path, String payload) {
+  HTTPClient http;
+  if (http.begin(ipAddress.c_str(), serverPort, path)) {
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    http.POST(payload);
+    http.end();
+  }
+}
+
+// =====================
+// WiFi
+// =====================
+void connectToWiFi() {
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+
+  wifiTimeOfLastConnection = millis();
+  Serial.println("\nWiFi connected");
+}
+
+void checkWiFiConnection() {
+  if (WiFi.status() != WL_CONNECTED) {
+    connectToWiFi();
+  }
+}
+
+// =====================
+// Restart Logic
+// =====================
+void checkRestartESP32() {
+  if (millis() - lastRestartTime >= RESTART_INTERVAL) {
+    ESP.restart();
+  }
+}
+
+// =====================
+// Time Helpers
+// =====================
+String twoDigits(unsigned long n) {
+  return (n < 10) ? "0" + String(n) : String(n);
+}
+
+String updateWiFiConnectedTimeString() {
+  unsigned long t = millis() - wifiTimeOfLastConnection;
+  return twoDigits((t / 3600000) % 24) + ":" +
+         twoDigits((t / 60000) % 60) + ":" +
+         twoDigits((t / 1000) % 60);
+}
+
+String updateUptimeString() {
+  unsigned long t = millis() - lastPowerOnTime;
+  return String(t / 86400000UL) + "d " +
+         twoDigits((t / 3600000UL) % 24) + ":" +
+         twoDigits((t / 60000UL) % 60) + ":" +
+         twoDigits((t / 1000UL) % 60);
+}
