@@ -6,23 +6,24 @@ const esp32Event = require('../models/esp32Event'); // Model for ESP32 events
 // POST route to handle ESP32 data updates
 router.post('/add_esp32_data', async (req, res) => {
     try {
-        console.log('ESP32 data received:', req.body);
         const { esp32_location, esp32_name, esp32_sensor_type, esp32_sensor_reading, esp32_sensor_units } = req.body;
 
         if (!esp32_location || !esp32_name || !esp32_sensor_type || !esp32_sensor_reading || !esp32_sensor_units) {
             return res.status(400).send('Missing required fields');
         }
 
+        // Normalize the sensor type
+        const normalizedType = esp32_sensor_type.toLowerCase().replace(/\s+/g, '_');
+
         const newesp32data = new esp32Data({
             esp32_location,
             esp32_name,
-            esp32_sensor_type,
-            esp32_sensor_reading,
+            esp32_sensor_type: normalizedType,
+            esp32_sensor_reading: parseFloat(esp32_sensor_reading),
             esp32_sensor_units
         });
 
         await newesp32data.save();
-
         res.status(200).send('ESP32 data received');
     } catch (error) {
         console.error(error);
@@ -131,5 +132,61 @@ router.get('/esp32-events/recent-by-time', async (req, res) => {
     res.status(500).json({ error: 'Error fetching recent events' });
   }
 });
+
+
+// GET route to fetch voltage chart data
+// /esp32-data/voltage-chart?from=ISO&to=ISO&interval=minutes
+router.get('/esp32-data/voltage-chart', async (req, res) => {
+    try {
+        const { from, to, interval = 10 } = req.query;
+        if (!from || !to) return res.status(400).json({ error: 'Missing from or to date' });
+
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        const intervalMs = parseInt(interval) * 60 * 1000;
+
+        const pipeline = [
+            {
+                $match: {
+                    esp32_sensor_type: { $in: ['solar_panel_voltage', 'battery_voltage'] },
+                    timestamp: { $gte: fromDate, $lte: toDate }
+                }
+            },
+            {
+                $project: {
+                    esp32_sensor_type: 1,
+                    esp32_sensor_reading: 1,
+                    timestamp: 1,
+                    intervalBucket: {
+                        $toLong: {
+                            $divide: [
+                                { $toLong: { $subtract: ['$timestamp', new Date(0)] } },
+                                intervalMs
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { type: '$esp32_sensor_type', bucket: '$intervalBucket' },
+                    avgValue: { $avg: '$esp32_sensor_reading' },
+                    timestamp: { $min: '$timestamp' }
+                }
+            },
+            {
+                $sort: { timestamp: 1 }
+            }
+        ];
+
+        const data = await esp32Data.aggregate(pipeline);
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error fetching voltage chart data' });
+    }
+});
+
+
 
 module.exports = router;
