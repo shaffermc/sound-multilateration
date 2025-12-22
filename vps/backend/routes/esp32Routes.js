@@ -57,28 +57,79 @@ router.post('/add_esp32_event', async (req, res) => {
     }
 });
 
-// GET route to fetch the latest ESP32 data
-router.get('/esp32-data/latest', async (req, res) => {
-    try {
-        const latestData = await esp32Data.findOne().sort({ timestamp: -1 });
-        if (!latestData) return res.status(404).json({ message: 'No data found' });
-        res.json(latestData);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error fetching latest data' });
-    }
+// GET route to fetch recent ESP32 data
+router.get('/esp32-data/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10; // default 10 readings
+    const recentData = await esp32Data
+      .find()
+      .sort({ timestamp: -1 })
+      .limit(limit); // get multiple readings
+
+    if (!recentData || recentData.length === 0)
+      return res.status(404).json({ message: 'No data found' });
+
+    res.json(recentData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching recent data' });
+  }
 });
 
-// GET route to fetch the latest ESP32 event
-router.get('/esp32-events/latest', async (req, res) => {
-    try {
-        const latestEvent = await esp32Event.findOne().sort({ timestamp: -1 });
-        if (!latestEvent) return res.status(404).json({ message: 'No event found' });
-        res.json(latestEvent);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error fetching latest event' });
-    }
+
+// GET route to fetch recent ESP32 events
+router.get('/esp32-events/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10; // default 10 readings
+    const recentEvents = await esp32Event
+      .find()
+      .sort({ timestamp: -1 })
+      .limit(limit); // get multiple readings
+
+    if (!recentEvents || recentEvents.length === 0)
+      return res.status(404).json({ message: 'No events found' });
+
+    res.json(recentEvents);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching recent events' });
+  }
+});
+
+// GET recent ESP32 data in last N minutes
+router.get('/esp32-data/recent-by-time', async (req, res) => {
+  try {
+    const minutes = parseInt(req.query.minutes) || 10;
+    const since = new Date(Date.now() - minutes * 60 * 1000);
+
+    const recentData = await esp32Data.find({ timestamp: { $gte: since } }).sort({ timestamp: -1 });
+
+    if (!recentData || recentData.length === 0)
+      return res.status(404).json({ message: 'No data found' });
+
+    res.json(recentData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching recent data' });
+  }
+});
+
+// GET recent ESP32 events in last N minutes
+router.get('/esp32-events/recent-by-time', async (req, res) => {
+  try {
+    const minutes = parseInt(req.query.minutes) || 10;
+    const since = new Date(Date.now() - minutes * 60 * 1000);
+
+    const recentEvents = await esp32Event.find({ timestamp: { $gte: since } }).sort({ timestamp: -1 });
+
+    if (!recentEvents || recentEvents.length === 0)
+      return res.status(404).json({ message: 'No events found' });
+
+    res.json(recentEvents);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching recent events' });
+  }
 });
 
 module.exports = router;
