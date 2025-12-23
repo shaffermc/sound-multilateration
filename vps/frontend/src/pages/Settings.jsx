@@ -31,7 +31,7 @@ export default function Settings() {
 }, [])
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/stationStatus`)
+    fetch(`${import.meta.env.VITE_API_URL}/stationStatus/get_station_status`)
       .then(res => res.json())
       .then(data => {
         const map = {}
