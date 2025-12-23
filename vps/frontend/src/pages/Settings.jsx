@@ -6,6 +6,7 @@ import BandwidthDisplay from "../components/BandwidthDisplay";
 import StationStatus from "../components/StationStatus";
 import VoltageChart from "../components/VoltageChart";
 import { useDeviceSocket } from "../components/useDeviceSocket";
+import SocketDebugPanel from "../components/SocketDebugPanel";
 
 
 export default function Settings() {
@@ -45,6 +46,7 @@ export default function Settings() {
 
   return (
     <div style={{ padding: "2rem" }}>
+      <SocketDebugPanel devices={devices} stations={stations} />
       <AddInstruction />
       <InstructionsList />
       <BandwidthDisplay />
