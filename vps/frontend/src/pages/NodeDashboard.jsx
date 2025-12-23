@@ -11,6 +11,8 @@ const socket = io(API, {
 export default function NodeDashboard() {
   const [nodes, setNodes] = useState({})
   const [stations, setStations] = useState({})
+  
+  console.log("VITE_API_URL =", import.meta.env.VITE_API_URL)
 
   // 1) Initial snapshot
   useEffect(() => {
