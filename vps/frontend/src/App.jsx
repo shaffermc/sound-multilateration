@@ -7,20 +7,14 @@ import ManagePresets from "./components/ManagePresets";
 import TDOAMap from "./components/TDOAMap";
 import RetrievalStatus from "./components/RetrievalStatus";
 import AudioFileList from "./components/AudioFileList";
-import Settings from "./pages/Settings";
 import NodeDashboard from "./pages/NodeDashboard";
 
 export default function App() {
   const [result, setResult] = useState(null);
 
   const params = new URLSearchParams(window.location.search);
-  const isSettingsPage = params.has("settings");
   const isDashboard = params.has("dashboard");
 
-  if (isSettingsPage) {
-    return <Settings />;
-  }
-  
     if (isDashboard) {
     return <NodeDashboard />;
   }
