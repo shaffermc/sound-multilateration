@@ -22,7 +22,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" }
 })
-
+console.log("socket.io version:", require("socket.io/package.json").version)
+console.log("engine.io version:", require("engine.io/package.json").version)
 
 
 module.exports = { io };
