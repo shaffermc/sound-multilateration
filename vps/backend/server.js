@@ -40,8 +40,8 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
 // ===== Socket device route =====
-app.use("/api/device", require("./routes/deviceUpdate"));
-app.use("/api/devices", require("./routes/devices"));
+app.use("/device", require("./routes/deviceUpdate"));
+app.use("/devices", require("./routes/devices"));
 
 // ===== Routes =====
 const PresetsRoutes = require('./routes/PresetsRoutes');

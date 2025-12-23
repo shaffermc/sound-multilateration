@@ -18,7 +18,7 @@ export default function Settings() {
   useDeviceSocket(setDevices, setStations);
 
   useEffect(() => {
-  fetch(`${import.meta.env.VITE_API_URL}/api/devices`)
+  fetch(`${import.meta.env.VITE_API_URL}/sound-locator/api/devices`)
     .then(res => res.json())
     .then(data => {
       const map = {}
@@ -31,7 +31,7 @@ export default function Settings() {
 }, [])
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/stationStatus`)
+    fetch(`${import.meta.env.VITE_API_URL}/sound-locator/api/stationStatus`)
       .then(res => res.json())
       .then(data => {
         const map = {}
