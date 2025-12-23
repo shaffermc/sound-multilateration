@@ -3,7 +3,10 @@ import { io } from "socket.io-client"
 import DenseNodeTable from "../components/DenseNodeTable"
 
 const API = import.meta.env.VITE_API_URL
-const socket = io(API)
+
+const socket = io(API, {
+  path: "/sound-locator/api/socket.io"
+})
 
 export default function NodeDashboard() {
   const [nodes, setNodes] = useState({})
