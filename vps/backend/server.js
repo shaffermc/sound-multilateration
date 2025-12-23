@@ -65,14 +65,14 @@ app.get('/', (req, res) => {
 });
 
 app.get("/get-ip", (req, res) => {
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  let ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress;
 
-  // If IPv6-mapped IPv4, remove the ::ffff: prefix
-  if (ip.startsWith("::ffff:")) {
-    ip = ip.replace("::ffff:", "");
-  }
+  // Remove IPv6 ::ffff: prefix
+  ip = ip.replace(/^::ffff:/, "");
 
-  res.send(ip);
+  res.json({ ip });
 });
 
 // ===== Audio =====
