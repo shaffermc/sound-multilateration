@@ -3,51 +3,51 @@ import { io } from "socket.io-client"
 import DenseNodeTable from "../components/DenseNodeTable"
 
 const API = import.meta.env.VITE_API_URL
-
 const socket = io(`${API}/sound-locator/api`)
-
-
-socket.on("connect", () => console.log("socket connected", socket.id))
-socket.on("connect_error", (err) => console.log("socket connect_error", err.message))
-socket.on("disconnect", (reason) => console.log("socket disconnected", reason))
 
 export default function NodeDashboard() {
   const [nodes, setNodes] = useState({})
   const [stations, setStations] = useState({})
 
-  console.log("VITE_API_URL =", import.meta.env.VITE_API_URL)
+  // Debug socket lifecycle (temporary)
+  useEffect(() => {
+    const onConnect = () => console.log("socket connected", socket.id)
+    const onErr = (err) => console.log("socket connect_error", err.message)
+    const onDisc = (reason) => console.log("socket disconnected", reason)
+
+    socket.on("connect", onConnect)
+    socket.on("connect_error", onErr)
+    socket.on("disconnect", onDisc)
+
+    return () => {
+      socket.off("connect", onConnect)
+      socket.off("connect_error", onErr)
+      socket.off("disconnect", onDisc)
+    }
+  }, [])
 
   // 1) Initial snapshot
-    useEffect(() => {
+  useEffect(() => {
     const url = `${API}/sound-locator/api/api/nodes`
 
     fetch(url)
-        .then(async (r) => {
+      .then(async (r) => {
         const text = await r.text()
         if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${text.slice(0, 200)}`)
-        try {
-            return JSON.parse(text)
-        } catch {
-            throw new Error(`Expected JSON from ${url} but got: ${text.slice(0, 80)}`)
-        }
-        })
-        .then(list => {
+        return JSON.parse(text)
+      })
+      .then((list) => {
         const map = {}
-        list.forEach(n => (map[n.key] = n))
+        list.forEach((n) => (map[n.key] = n))
         setNodes(map)
-        })
-        .catch(err => console.error("Failed to load nodes", err))
-    }, [API])
-
+      })
+      .catch((err) => console.error("Failed to load nodes", err))
+  }, [])
 
   // 2) Live updates
   useEffect(() => {
-    const onNode = (node) => {
-      setNodes(prev => ({ ...prev, [node.key]: node }))
-    }
-    const onStation = (st) => {
-      setStations(prev => ({ ...prev, [st.station]: st }))
-    }
+    const onNode = (node) => setNodes((prev) => ({ ...prev, [node.key]: node }))
+    const onStation = (st) => setStations((prev) => ({ ...prev, [st.station]: st }))
 
     socket.on("node:update", onNode)
     socket.on("station:update", onStation)
@@ -56,56 +56,60 @@ export default function NodeDashboard() {
       socket.off("node:update", onNode)
       socket.off("station:update", onStation)
     }
-  }, [API])
+  }, [])
 
+  // Needed for station cards
   const nodesByStation = useMemo(() => {
     return Object.values(nodes).reduce((acc, n) => {
-      acc[n.station] ??= []
-      acc[n.station].push(n)
+      const sid = n.station || "unknown"
+      acc[sid] ??= []
+      acc[sid].push(n)
       return acc
     }, {})
   }, [nodes])
 
-return (
-  <div style={{ padding: 16 }}>
-    <h2 style={{ marginTop: 0 }}>Sound Locator Status</h2>
+  return (
+    <div style={{ padding: 16 }}>
+      <h2 style={{ marginTop: 0 }}>Sound Locator Status</h2>
 
-    {/* ===== Your existing station cards/grid stays here ===== */}
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        gap: 12
-      }}
-    >
-      {Object.entries(nodesByStation).map(([stationId, list]) => (
-        <StationCard
-          key={stationId}
-          stationId={stationId}
-          stationStatus={stations[stationId]?.status}
-          nodes={list}
-        />
-      ))}
-    </div>
+      {/* Station cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 12
+        }}
+      >
+        {Object.entries(nodesByStation).map(([stationId, list]) => (
+          <StationCard
+            key={stationId}
+            stationId={stationId}
+            stationStatus={stations[stationId]?.status}
+            nodes={list}
+          />
+        ))}
+      </div>
 
-    {/* ===== Dense Table at the bottom ===== */}
-    <div style={{ marginTop: 24 }}>
-      <h2 style={{ margin: "0 0 10px 0" }}>Dense Status Table</h2>
-      <DenseNodeTable nodesByKey={nodes} />
+      {/* Dense Table */}
+      <div style={{ marginTop: 24 }}>
+        <h2 style={{ margin: "0 0 10px 0" }}>Dense Status Table</h2>
+        <DenseNodeTable nodesByKey={nodes} />
+      </div>
     </div>
-  </div>
-)
+  )
 }
 
 function StationCard({ stationId, stationStatus, nodes }) {
   const sorted = [...nodes].sort((a, b) => (a.kind || "").localeCompare(b.kind || ""))
 
   return (
-    <div style={{
-      border: "1px solid #333",
-      borderRadius: 10,
-      padding: 12
-    }}>
+    <div
+      style={{
+        border: "1px solid #333",
+        borderRadius: 10,
+        padding: 12
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h3 style={{ margin: 0 }}>{stationId}</h3>
         <StatusPill status={stationStatus || "UNKNOWN"} />
@@ -123,11 +127,13 @@ function StationCard({ stationId, stationStatus, nodes }) {
             </tr>
           </thead>
           <tbody>
-            {sorted.map(n => (
+            {sorted.map((n) => (
               <tr key={n.key} style={{ borderTop: "1px solid #222" }}>
                 <td>{n.kind}</td>
-                <td>{n.name || n.key.split(":").at(-1)}</td>
-                <td><StatusDot status={n.status} /> {n.status}</td>
+                <td>{n.name || (n.key ? n.key.split(":").slice(-1)[0] : "")}</td>
+                <td>
+                  <StatusDot status={n.status} /> {n.status}
+                </td>
                 <td>{n.lastSeen ? new Date(n.lastSeen).toLocaleTimeString() : "—"}</td>
                 <td style={{ fontFamily: "monospace", fontSize: 12 }}>
                   {n.meta && typeof n.meta === "object" ? Object.keys(n.meta).join(", ") : "—"}
@@ -143,45 +149,46 @@ function StationCard({ stationId, stationStatus, nodes }) {
 
 function StatusDot({ status }) {
   const color =
-    status === "OK" ? "limegreen" :
-    status === "STALE" ? "orange" :
-    status === "OFFLINE" ? "red" :
-    "gray"
+    status === "OK" ? "limegreen" : status === "STALE" ? "orange" : status === "OFFLINE" ? "red" : "gray"
 
   return (
-    <span style={{
-      display: "inline-block",
-      width: 10,
-      height: 10,
-      borderRadius: "50%",
-      background: color,
-      marginRight: 6
-    }} />
+    <span
+      style={{
+        display: "inline-block",
+        width: 10,
+        height: 10,
+        borderRadius: "50%",
+        background: color,
+        marginRight: 6
+      }}
+    />
   )
 }
 
 function StatusPill({ status }) {
   const bg =
-    status === "OK" ? "rgba(50,205,50,0.2)" :
-    status === "DEGRADED" ? "rgba(255,165,0,0.2)" :
-    status === "DOWN" ? "rgba(255,0,0,0.2)" :
-    "rgba(128,128,128,0.2)"
+    status === "OK"
+      ? "rgba(50,205,50,0.2)"
+      : status === "DEGRADED"
+        ? "rgba(255,165,0,0.2)"
+        : status === "DOWN"
+          ? "rgba(255,0,0,0.2)"
+          : "rgba(128,128,128,0.2)"
 
   const color =
-    status === "OK" ? "limegreen" :
-    status === "DEGRADED" ? "orange" :
-    status === "DOWN" ? "red" :
-    "gray"
+    status === "OK" ? "limegreen" : status === "DEGRADED" ? "orange" : status === "DOWN" ? "red" : "gray"
 
   return (
-    <span style={{
-      padding: "4px 10px",
-      borderRadius: 999,
-      background: bg,
-      color,
-      border: `1px solid ${color}`,
-      fontSize: 12
-    }}>
+    <span
+      style={{
+        padding: "4px 10px",
+        borderRadius: 999,
+        background: bg,
+        color,
+        border: `1px solid ${color}`,
+        fontSize: 12
+      }}
+    >
       {status}
     </span>
   )
