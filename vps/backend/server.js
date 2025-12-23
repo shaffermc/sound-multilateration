@@ -41,6 +41,7 @@ app.use('/static', express.static(path.join(__dirname, 'static')));
 
 // ===== Socket device route =====
 app.use("/api/device", require("./routes/deviceUpdate"));
+app.use("/api/devices", require("./routes/devices"));
 
 // ===== Routes =====
 const PresetsRoutes = require('./routes/PresetsRoutes');

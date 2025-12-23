@@ -10,7 +10,7 @@ function makeKey(station, type, id) {
 
 async function handleDeviceUpdate(req, res) {
   const data = req.body
-  const now = Date.now()
+  const now = new Date()
 
   const key = makeKey(data.station, data.deviceType, data.deviceId)
 
@@ -20,6 +20,7 @@ async function handleDeviceUpdate(req, res) {
     lastSeen: now,
     status: "OK"
   }
+
 
   devices.set(key, deviceState)
 
@@ -41,13 +42,17 @@ function updateStationState(stationId) {
   const stationDevices = [...devices.values()]
     .filter(d => d.station === stationId)
 
-  let status = "OK"
+    let status = "OK"
 
-  for (const d of stationDevices) {
+    for (const d of stationDevices) {
     if (d.status === "OFFLINE") {
-      status = "DEGRADED"
+        status = "DOWN"
+        break
     }
-  }
+    if (d.status === "STALE") {
+        status = "DEGRADED"
+    }
+    }
 
   stations.set(stationId, {
     station: stationId,
@@ -61,13 +66,17 @@ function updateStationState(stationId) {
 setInterval(() => {
   const now = Date.now()
 
-  for (const [key, device] of devices.entries()) {
+    for (const [key, device] of devices.entries()) {
     let newStatus = device.status
 
-    if (now - device.lastSeen > 60000) {
-      newStatus = "OFFLINE"
-    } else if (now - device.lastSeen > 10000) {
-      newStatus = "STALE"
+    const lastSeenMs = new Date(device.lastSeen).getTime()
+
+    if (Number.isNaN(lastSeenMs)) return
+    
+    if (now - lastSeenMs > 60000) {
+        newStatus = "OFFLINE"
+    } else if (now - lastSeenMs > 10000) {
+        newStatus = "STALE"
     }
 
     if (newStatus !== device.status) {

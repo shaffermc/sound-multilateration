@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ESP32Dashboard from "../components/ESP32Dashboard";
 import AddInstruction from "../components/AddInstruction";
 import InstructionsList from "../components/InstructionsList";
@@ -6,6 +6,7 @@ import BandwidthDisplay from "../components/BandwidthDisplay";
 import StationStatus from "../components/StationStatus";
 import VoltageChart from "../components/VoltageChart";
 import { useDeviceSocket } from "../components/useDeviceSocket";
+
 
 export default function Settings() {
   const [devices, setDevices] = useState({});
@@ -15,6 +16,32 @@ export default function Settings() {
   const to = new Date().toISOString();
 
   useDeviceSocket(setDevices, setStations);
+
+  useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_URL}/api/devices`)
+    .then(res => res.json())
+    .then(data => {
+      const map = {}
+      data.forEach(d => {
+        map[d.key] = d
+      })
+      setDevices(map)
+    })
+    .catch(err => console.error("Failed to load devices", err))
+}, [])
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/stationStatus`)
+      .then(res => res.json())
+      .then(data => {
+        const map = {}
+        data.forEach(s => {
+          map[s.station] = s
+        })
+        setStations(map)
+      })
+      .catch(err => console.error("Failed to load stations", err))
+  }, [])
 
   return (
     <div style={{ padding: "2rem" }}>
