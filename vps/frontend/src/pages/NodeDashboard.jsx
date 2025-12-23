@@ -4,14 +4,12 @@ import DenseNodeTable from "../components/DenseNodeTable"
 
 const API = import.meta.env.VITE_API_URL
 
-const socket = io(API, {
-  path: "/sound-locator/api/socket.io"
-})
+const socket = io(`${API}/sound-locator/api`)
 
 export default function NodeDashboard() {
   const [nodes, setNodes] = useState({})
   const [stations, setStations] = useState({})
-  
+
   console.log("VITE_API_URL =", import.meta.env.VITE_API_URL)
 
   // 1) Initial snapshot
