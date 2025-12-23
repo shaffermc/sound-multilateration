@@ -47,11 +47,17 @@ app.use("/devices", require("./routes/devices"));
 const PresetsRoutes = require('./routes/PresetsRoutes');
 app.use('/presets', PresetsRoutes);
 
+const esp32Routes = require('./routes/esp32Routes');
+app.use('/esp32', esp32Routes);
+
+const stationStatusRoutes = require('./routes/StationStatusRoutes');
+app.use('/stationStatus', stationStatusRoutes);
+
 const InstructionsRoutes = require('./routes/InstructionsRoutes');
 app.use('/instructions', InstructionsRoutes);
 
-app.use("/api/node", require("./routes/nodeUpdate"))
-
+const BandwidthUsageRoutes = require('./routes/BandwidthUsageRoutes');
+app.use('/bandwidth', BandwidthUsageRoutes);
 
 // ===== Health =====
 app.get('/', (req, res) => {
