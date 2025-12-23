@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { io } from "socket.io-client"
+import DenseNodeTable from "../components/DenseNodeTable"
 
 const API = import.meta.env.VITE_API_URL
 const socket = io(API)
@@ -18,7 +19,7 @@ export default function NodeDashboard() {
         setNodes(map)
       })
       .catch(err => console.error("Failed to load nodes", err))
-  }, [])
+  }, [API])
 
   // 2) Live updates
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function NodeDashboard() {
       socket.off("node:update", onNode)
       socket.off("station:update", onStation)
     }
-  }, [])
+  }, [API])
 
   const nodesByStation = useMemo(() => {
     return Object.values(nodes).reduce((acc, n) => {
@@ -46,26 +47,35 @@ export default function NodeDashboard() {
     }, {})
   }, [nodes])
 
-  return (
-    <div style={{ padding: 16 }}>
-      <h2 style={{ marginTop: 0 }}>Sound Locator Status</h2>
+return (
+  <div style={{ padding: 16 }}>
+    <h2 style={{ marginTop: 0 }}>Sound Locator Status</h2>
 
-      <div style={{
+    {/* ===== Your existing station cards/grid stays here ===== */}
+    <div
+      style={{
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
         gap: 12
-      }}>
-        {Object.entries(nodesByStation).map(([stationId, list]) => (
-          <StationCard
-            key={stationId}
-            stationId={stationId}
-            stationStatus={stations[stationId]?.status}
-            nodes={list}
-          />
-        ))}
-      </div>
+      }}
+    >
+      {Object.entries(nodesByStation).map(([stationId, list]) => (
+        <StationCard
+          key={stationId}
+          stationId={stationId}
+          stationStatus={stations[stationId]?.status}
+          nodes={list}
+        />
+      ))}
     </div>
-  )
+
+    {/* ===== Dense Table at the bottom ===== */}
+    <div style={{ marginTop: 24 }}>
+      <h2 style={{ margin: "0 0 10px 0" }}>Dense Status Table</h2>
+      <DenseNodeTable nodesByKey={nodes} />
+    </div>
+  </div>
+)
 }
 
 function StationCard({ stationId, stationStatus, nodes }) {
@@ -101,7 +111,7 @@ function StationCard({ stationId, stationStatus, nodes }) {
                 <td><StatusDot status={n.status} /> {n.status}</td>
                 <td>{n.lastSeen ? new Date(n.lastSeen).toLocaleTimeString() : "—"}</td>
                 <td style={{ fontFamily: "monospace", fontSize: 12 }}>
-                  {n.meta ? JSON.stringify(n.meta) : "—"}
+                  {n.meta && typeof n.meta === "object" ? Object.keys(n.meta).join(", ") : "—"}
                 </td>
               </tr>
             ))}
