@@ -24,8 +24,12 @@ const io = new Server(server, {
 })
 console.log("socket.io version:", require("socket.io").Server ? "4.x" : "unknown")
 
-
-
+const onErr = (err) => {
+  console.log("socket connect_error", err)
+  console.log("socket connect_error message", err?.message)
+  console.log("socket connect_error description", err?.description)
+  console.log("socket connect_error context", err?.context)
+}
 
 module.exports = { io };
 
