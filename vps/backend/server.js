@@ -20,9 +20,9 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  path: "/sound-locator/api/socket.io",
   cors: { origin: "*" }
 })
+
 
 
 module.exports = { io };
