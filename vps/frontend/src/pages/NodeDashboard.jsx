@@ -13,16 +13,27 @@ export default function NodeDashboard() {
   console.log("VITE_API_URL =", import.meta.env.VITE_API_URL)
 
   // 1) Initial snapshot
-  useEffect(() => {
-    fetch(`${API}/api/nodes`)
-      .then(r => r.json())
-      .then(list => {
+    useEffect(() => {
+    const url = `${API}/sound-locator/api/api/nodes`
+
+    fetch(url)
+        .then(async (r) => {
+        const text = await r.text()
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}: ${text.slice(0, 200)}`)
+        try {
+            return JSON.parse(text)
+        } catch {
+            throw new Error(`Expected JSON from ${url} but got: ${text.slice(0, 80)}`)
+        }
+        })
+        .then(list => {
         const map = {}
         list.forEach(n => (map[n.key] = n))
         setNodes(map)
-      })
-      .catch(err => console.error("Failed to load nodes", err))
-  }, [API])
+        })
+        .catch(err => console.error("Failed to load nodes", err))
+    }, [API])
+
 
   // 2) Live updates
   useEffect(() => {
