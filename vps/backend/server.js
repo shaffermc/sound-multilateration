@@ -60,7 +60,12 @@ app.use('/bandwidth', BandwidthUsageRoutes);
 
 // ===== Health =====
 app.get('/', (req, res) => {
-  res.send('Sensor Data Logger API');
+  res.send('Express Server');
+});
+
+app.get("/get-ip", (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  res.send(ip);
 });
 
 // ===== Audio =====
