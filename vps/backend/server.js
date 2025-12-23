@@ -52,6 +52,7 @@ app.use('/instructions', InstructionsRoutes);
 
 app.use("/api/node", require("./routes/nodeUpdate"))
 
+app.use("/api/nodes", require("./routes/nodes"))
 
 // ===== Health =====
 app.get('/', (req, res) => {
