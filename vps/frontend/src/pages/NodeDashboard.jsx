@@ -14,6 +14,8 @@ export default function NodeDashboard() {
     const onConnect = () => console.log("socket connected", socket.id)
     const onErr = (err) => console.log("socket connect_error", err.message)
     const onDisc = (reason) => console.log("socket disconnected", reason)
+    
+    console.log("socket url =", `${API}/sound-locator/api`)
 
     socket.on("connect", onConnect)
     socket.on("connect_error", onErr)
