@@ -15,7 +15,21 @@ export default function NodeDashboard() {
   // Debug socket lifecycle (temporary)
   useEffect(() => {
     const onConnect = () => console.log("socket connected", socket.id)
-    const onErr = (err) => console.log("socket connect_error", err.message)
+    const onErr = (err) => {
+        console.log("socket connect_error FULL", err)
+        console.log("message:", err?.message)
+        console.log("description:", err?.description)
+        console.log("type:", err?.type)
+        console.log("context:", err?.context)
+        // socket.io-client often includes the failing XHR in err.context
+        try {
+            const status = err?.context?.status
+            const url = err?.context?.url
+            console.log("xhr status:", status, "url:", url)
+            console.log("xhr responseText:", err?.context?.responseText?.slice?.(0, 300))
+        } catch (e) {}
+        }
+
     const onDisc = (reason) => console.log("socket disconnected", reason)
     
     console.log("socket url =", `${API}/sound-locator/api`)
