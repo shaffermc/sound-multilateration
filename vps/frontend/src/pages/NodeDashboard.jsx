@@ -143,7 +143,13 @@ function StationCard({ stationId, stationStatus, nodes }) {
               <th align="left">Name/ID</th>
               <th align="left">Status</th>
               <th align="left">Last Seen</th>
-              <th align="left">Meta</th>
+              <th align="left">Temp F</th>
+              <th align="left">Humidity %</th>
+              <th align="left">Dew Pt F</th>
+              <th align="left">HeatIdx F</th>
+              <th align="left">RSSI</th>
+              <th align="left">Uptime</th>
+              <th align="left">WiFi Conn</th>
             </tr>
           </thead>
           <tbody>
@@ -155,9 +161,14 @@ function StationCard({ stationId, stationStatus, nodes }) {
                   <StatusDot status={n.status} /> {n.status}
                 </td>
                 <td>{n.lastSeen ? new Date(n.lastSeen).toLocaleTimeString() : "—"}</td>
-                <td style={{ fontFamily: "monospace", fontSize: 12 }}>
-                  {n.meta && typeof n.meta === "object" ? Object.keys(n.meta).join(", ") : "—"}
-                </td>
+                <td>{n.meta?.interior_temp_f ?? "—"}</td>
+                <td>{n.meta?.interior_humidity_pct ?? "—"}</td>
+                <td>{n.meta?.interior_dew_point_f ?? "—"}</td>
+                <td>{n.meta?.interior_heat_index_f ?? "—"}</td>
+                <td>{n.meta?.rssi ?? "—"}</td>
+                <td>{n.meta?.uptime_s != null ? Math.floor(n.meta.uptime_s) : "—"}</td>
+                <td>{n.meta?.wifi_connected_s != null ? Math.floor(n.meta.wifi_connected_s) : "—"}</td>
+
               </tr>
             ))}
           </tbody>

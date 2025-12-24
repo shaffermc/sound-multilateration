@@ -107,7 +107,7 @@ export default function DenseNodeTable({ nodesByKey }) {
             <Th>Free Space</Th>
             <Th>File Count</Th>
 
-            <Th>Meta Keys</Th>
+            <Th>Meta</Th>
           </tr>
         </thead>
 
@@ -131,7 +131,10 @@ export default function DenseNodeTable({ nodesByKey }) {
             const free_space = meta.free_space_bytes ?? meta.free_space ?? null
             const file_count = meta.file_count ?? null
 
-            const metaKeys = Object.keys(meta).slice(0, 8).join(", ")
+            const metaPairs = Object.entries(meta)
+            .slice(0, 8)
+            .map(([k, v]) => `${k}=${safe(v)}`)
+            .join(", ")
 
             return (
               <tr key={n.key} style={{ borderTop: "1px solid #222", ...staleStyle }}>
@@ -154,9 +157,8 @@ export default function DenseNodeTable({ nodesByKey }) {
                 <Td>{free_space != null ? bytesToHuman(free_space) : "—"}</Td>
                 <Td>{file_count != null ? safe(file_count) : "—"}</Td>
 
-                <Td title={safe(meta)} style={{ maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {metaKeys || "—"}
-                </Td>
+                <Td title={safe(meta)} style={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis" }}> {metaPairs || "—"} </Td>
+
               </tr>
             )
           })}
