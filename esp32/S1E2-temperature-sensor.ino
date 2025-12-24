@@ -10,15 +10,12 @@
 #define DHT_PIN 5
 #define DHT_TYPE DHT22
 
-const char* ssid = "x";
-const char* password = "x";
+const char* ssid = "";
+const char* password = "";
 
-const char* DEVICE_LOCATION = "Station 1";
-const char* DEVICE_NAME = "S1E2";
-const char* SENSOR_NAME = "DHT22";
-
-String ipAddress = "209.46.124.94";
-const int serverPort = 3000;
+String host = "www.litenby.com";
+const int serverPort = 80;
+const char* PATH_UPDATE = "/sound-locator/api/node/update";
 
 // Timing
 const unsigned long BASE_SEND_INTERVAL = 600000UL;       // 10 minutes
@@ -73,74 +70,51 @@ void loop() {
 // Main Data Send
 // =====================
 void sendAllData() {
+  // compute strings
   String wifiUptime = updateWiFiConnectedTimeString();
   String systemUptime = updateUptimeString();
 
-  sendEventData(DEVICE_LOCATION, DEVICE_NAME, "Wifi Uptime", wifiUptime, "Time");
-  sendEventData(DEVICE_LOCATION, DEVICE_NAME, "System Uptime", systemUptime, "Time");
-
+  // read sensor
   float tempC = dht.readTemperature();
   float humidity = dht.readHumidity();
-
-  if (isnan(tempC) || isnan(humidity)) {
-    Serial.println("Failed to read from DHT sensor");
-    return;
-  }
+  if (isnan(tempC) || isnan(humidity)) return;
 
   float tempF = (tempC * 9.0 / 5.0) + 32.0;
-  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Temperature", String(tempF, 2), "Fahrenheit");
+  float dewPointF = (computeDewPoint(tempC, humidity) * 9.0 / 5.0) + 32.0;
+  float heatIndexF = (computeHeatIndex(tempC, humidity) * 9.0 / 5.0) + 32.0;
 
-  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Humidity", String(humidity, 2), "percent");
+  long wifiConnectedS = (millis() - wifiTimeOfLastConnection) / 1000;
+  long uptimeS = (millis() - lastPowerOnTime) / 1000;
+  int rssi = WiFi.RSSI();
 
-  float dewPointC = computeDewPoint(tempC, humidity);
-  float dewPointF = (dewPointC * 9.0 / 5.0) + 32.0;
-  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Dew Point", String(dewPointF, 2), "Fahrenheit");
+  // Build JSON payload
+  String json =
+    "{"
+      "\"station\":\"1\","
+      "\"kind\":\"esp32\","
+      "\"id\":\"S1E2\","
+      "\"name\":\"DHT22\","
+      "\"meta\":{"
+        "\"wifi_connected_s\":" + String(wifiConnectedS) + ","
+        "\"uptime_s\":" + String(uptimeS) + ","
+        "\"rssi\":" + String(rssi) + ","
+        "\"interior_temp_f\":" + String(tempF, 2) + ","
+        "\"interior_humidity_pct\":" + String(humidity, 2) + ","
+        "\"interior_dew_point_f\":" + String(dewPointF, 2) + ","
+        "\"interior_heat_index_f\":" + String(heatIndexF, 2) +
+      "}"
+    "}";
 
-  float heatIndexC = computeHeatIndex(tempC, humidity);
-  float heatIndexF = (heatIndexC * 9.0 / 5.0) + 32.0;
-  sendData(DEVICE_LOCATION, DEVICE_NAME, SENSOR_NAME, "Heat Index", String(heatIndexF, 2), "Fahrenheit");
+  sendJsonPost("/node/update", json);
 }
 
-// =====================
-// HTTP Helpers
-// =====================
-void sendEventData(String location, String name, String type, String value, String units) {
-  String data =
-    "esp32_location=" + location +
-    "&esp32_name=" + name +
-    "&esp32_event_type=" + type +
-    "&esp32_event_value=" + value +
-    "&esp32_event_units=" + units;
-
-  sendPostRequest("/esp32/add_esp32_event", data);
-}
-
-void sendData(String location, String name, String sensor, String readingType, String value, String units) {
-  String data =
-    "esp32_location=" + location +
-    "&esp32_name=" + name +
-    "&esp32_sensor_type=" + readingType +
-    "&esp32_sensor_reading=" + value +
-    "&esp32_sensor_units=" + units;
-
-  sendPostRequest("/esp32/add_esp32_data", data);
-}
-
-void sendPostRequest(const char* path, String payload) {
+void sendJsonPost(const char* path, String json) {
   HTTPClient http;
-
-  if (http.begin(ipAddress.c_str(), serverPort, path)) {
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    int code = http.POST(payload);
-
-    Serial.print("HTTP ");
-    Serial.print(path);
-    Serial.print(" -> ");
-    Serial.println(code);
-
+  if (http.begin(host, serverPort, path)) {
+    http.addHeader("Content-Type", "application/json");
+    int code = http.POST(json);
+    Serial.printf("HTTP %s -> %d\n", path, code);
     http.end();
-  } else {
-    Serial.println("HTTP begin failed");
   }
 }
 
