@@ -10,8 +10,8 @@
 #define DHT_PIN 5
 #define DHT_TYPE DHT22
 
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "x";
+const char* password = "x";
 
 const char* DEVICE_LOCATION = "Station 1";
 const char* DEVICE_NAME = "S1E2";

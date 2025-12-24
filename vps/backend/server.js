@@ -72,6 +72,66 @@ app.get("/get-ip", (req, res) => {
   res.json({ ip });
 });
 
+// ====== Generate Plot =====
+
+app.get("/generate_plot_json", (req, res) => {
+  const q = req.query;
+
+  // Validate that all parameters exist
+  const required = [
+    "lat1","lon1","lat2","lon2","lat3","lon3","lat4","lon4",
+    "tA","tB","tC","tD"
+  ];
+
+  for (const r of required) {
+    if (!(r in q)) {
+      return res.status(400).json({ error: `Missing parameter ${r}` });
+    }
+  }
+
+  // Build argument list for python script
+  const args = [
+    "services/generate_plot.py",
+    q.lat1, q.lon1,
+    q.lat2, q.lon2,
+    q.lat3, q.lon3,
+    q.lat4, q.lon4,
+    q.tA, q.tB, q.tC, q.tD
+  ];
+
+  const python = spawn("python3", args);
+
+  let output = "";
+  let errorOutput = "";
+
+  python.stdout.on("data", (data) => {
+    output += data.toString();
+  });
+
+  python.stderr.on("data", (data) => {
+    errorOutput += data.toString();
+  });
+
+  python.on("close", (code) => {
+    if (code !== 0) {
+      return res.status(500).json({
+        error: "Python script failed",
+        details: errorOutput
+      });
+    }
+
+    try {
+      const json = JSON.parse(output);
+      res.json(json);
+    } catch (err) {
+      res.status(500).json({
+        error: "Invalid JSON from Python",
+        raw: output
+      });
+    }
+  });
+});
+
 // ===== Audio =====
 const audioDirectory = '/home/mshaffer/www/sound-multilateration/vps/backend/services/merged_audio';
 app.use('/audio', express.static(audioDirectory));
