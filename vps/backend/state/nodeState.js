@@ -62,8 +62,8 @@ setInterval(() => {
     const age = now - new Date(node.lastSeen).getTime()
 
     let next = "OK"
-    if (age > 60000) next = "OFFLINE"
-    else if (age > 10000) next = "STALE"
+    if (age > 90000) next = "OFFLINE"
+    else if (age > 70000) next = "STALE"
 
     if (next !== node.status) {
       node.status = next

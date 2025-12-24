@@ -18,7 +18,7 @@ const int serverPort = 80;
 const char* PATH_UPDATE = "/sound-locator/api/node/update";
 
 // Timing
-const unsigned long BASE_SEND_INTERVAL = 10000UL;       // 10 minutes
+const unsigned long BASE_SEND_INTERVAL = 300000UL;       // 5 minutes
 const unsigned long RESTART_INTERVAL = 86400000UL;       // 24 hours
 unsigned long lastSendTime = 0;
 unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with random offset
