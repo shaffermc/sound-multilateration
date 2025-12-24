@@ -18,7 +18,7 @@ const int serverPort = 80;
 const char* PATH_UPDATE = "/sound-locator/api/node/update";
 
 // Timing
-const unsigned long BASE_SEND_INTERVAL = 600000UL;       // 10 minutes
+const unsigned long BASE_SEND_INTERVAL = 10000UL;       // 10 minutes
 const unsigned long RESTART_INTERVAL = 86400000UL;       // 24 hours
 unsigned long lastSendTime = 0;
 unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with random offset
@@ -62,7 +62,7 @@ void loop() {
     sendAllData();
 
     // Add a small random offset for the next interval (±1 minute)
-    sendInterval = BASE_SEND_INTERVAL + random(-60000, 60000);
+    //sendInterval = BASE_SEND_INTERVAL + random(-60000, 60000);
   }
 }
 
@@ -105,7 +105,7 @@ void sendAllData() {
       "}"
     "}";
 
-  sendJsonPost("/node/update", json);
+  sendJsonPost(PATH_UPDATE, json);
 }
 
 void sendJsonPost(const char* path, String json) {
@@ -113,8 +113,14 @@ void sendJsonPost(const char* path, String json) {
   if (http.begin(host, serverPort, path)) {
     http.addHeader("Content-Type", "application/json");
     int code = http.POST(json);
-    Serial.printf("HTTP %s -> %d\n", path, code);
+
+    Serial.printf("HTTP POST %s -> %d\n", path, code);
+    String resp = http.getString();
+    Serial.println(resp);
+
     http.end();
+  } else {
+    Serial.println("http.begin() failed");
   }
 }
 

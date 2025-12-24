@@ -31,7 +31,6 @@ function safe(v) {
 }
 
 function pickId(node) {
-  // Prefer explicit node.id, else try to parse from key like "1:esp32:S1E2"
   if (node?.id) return node.id
   const k = node?.key || ""
   const parts = k.split(":")
@@ -48,7 +47,7 @@ function bytesToHuman(bytes) {
   return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
 }
 
-function msToHMS(sec) {
+function secToHMS(sec) {
   const n = Number(sec)
   if (!Number.isFinite(n)) return "—"
   const s = Math.max(0, Math.floor(n))
@@ -58,9 +57,26 @@ function msToHMS(sec) {
   return `${h}h ${m}m ${ss}s`
 }
 
+function metaPreview(meta) {
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return "—"
+  const pairs = Object.entries(meta).slice(0, 10).map(([k, v]) => `${k}=${safe(v)}`)
+  return pairs.join("  ") || "—"
+}
+
 // ---- main ----
 export default function DenseNodeTable({ nodesByKey }) {
   const nodes = useMemo(() => Object.values(nodesByKey || {}), [nodesByKey])
+
+  const metaColumns = useMemo(() => {
+    const keys = new Set()
+    for (const n of nodes) {
+      const meta = n?.meta
+      if (meta && typeof meta === "object" && !Array.isArray(meta)) {
+        for (const k of Object.keys(meta)) keys.add(k)
+      }
+    }
+    return Array.from(keys).sort()
+  }, [nodes])
 
   const rows = useMemo(() => {
     const copy = [...nodes]
@@ -75,8 +91,7 @@ export default function DenseNodeTable({ nodesByKey }) {
       const ka = (a.kind || "").localeCompare(b.kind || "")
       if (ka !== 0) return ka
 
-      const ia = pickId(a).localeCompare(pickId(b))
-      return ia
+      return pickId(a).localeCompare(pickId(b))
     })
     return copy
   }, [nodes])
@@ -103,11 +118,12 @@ export default function DenseNodeTable({ nodesByKey }) {
             <Th>Local IP</Th>
             <Th>Public IP</Th>
 
-            <Th>Daily BW</Th>
             <Th>Free Space</Th>
             <Th>File Count</Th>
 
-            <Th>Meta</Th>
+            <Th>Meta Preview</Th>
+
+            {metaColumns.map((k) => <Th key={k}>{k}</Th>)}
           </tr>
         </thead>
 
@@ -121,20 +137,14 @@ export default function DenseNodeTable({ nodesByKey }) {
 
             const meta = (n?.meta && typeof n.meta === "object" && !Array.isArray(n.meta)) ? n.meta : {}
 
-            // Map your chosen meta keys here (standardize these on devices over time)
+            // Standardized meta fields (you can evolve these over time)
             const uptime_s = meta.uptime_s ?? meta.uptime ?? null
             const wifi_s = meta.wifi_connected_s ?? meta.wifi_conn_s ?? null
-            const rssi = meta.rssi ?? n.rssi ?? null
-            const local_ip = meta.local_ip ?? meta.ip_local ?? null
-            const public_ip = meta.public_ip ?? meta.ip_public ?? null
-            const daily_bw = meta.daily_total_bandwidth ?? meta.daily_bandwidth_used ?? null
-            const free_space = meta.free_space_bytes ?? meta.free_space ?? null
-            const file_count = meta.file_count ?? null
-
-            const metaPairs = Object.entries(meta)
-            .slice(0, 8)
-            .map(([k, v]) => `${k}=${safe(v)}`)
-            .join(", ")
+            const rssi = meta.rssi ?? null
+            const local_ip = meta.local_ip ?? meta.station_local_ip ?? null
+            const public_ip = meta.public_ip ?? meta.station_public_ip ?? null
+            const free_space = meta.free_space_bytes ?? meta.station_free_space_bytes ?? meta.free_space ?? meta.station_free_space ?? null
+            const file_count = meta.file_count ?? meta.station_file_count ?? null
 
             return (
               <tr key={n.key} style={{ borderTop: "1px solid #222", ...staleStyle }}>
@@ -147,18 +157,22 @@ export default function DenseNodeTable({ nodesByKey }) {
                 <Td>{formatAge(ms)}</Td>
                 <Td>{n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "—"}</Td>
 
-                <Td>{uptime_s != null ? msToHMS(uptime_s) : "—"}</Td>
-                <Td>{wifi_s != null ? msToHMS(wifi_s) : "—"}</Td>
+                <Td>{uptime_s != null ? secToHMS(uptime_s) : "—"}</Td>
+                <Td>{wifi_s != null ? secToHMS(wifi_s) : "—"}</Td>
                 <Td>{rssi != null ? safe(rssi) : "—"}</Td>
                 <TdMono>{local_ip != null ? safe(local_ip) : "—"}</TdMono>
                 <TdMono>{public_ip != null ? safe(public_ip) : "—"}</TdMono>
 
-                <Td>{daily_bw != null ? safe(daily_bw) : "—"}</Td>
                 <Td>{free_space != null ? bytesToHuman(free_space) : "—"}</Td>
                 <Td>{file_count != null ? safe(file_count) : "—"}</Td>
 
-                <Td title={safe(meta)} style={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis" }}> {metaPairs || "—"} </Td>
+                <TdMono title={safe(meta)} style={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {metaPreview(meta)}
+                </TdMono>
 
+                {metaColumns.map((k) => (
+                  <Td key={k}>{safe(meta?.[k])}</Td>
+                ))}
               </tr>
             )
           })}
@@ -169,11 +183,7 @@ export default function DenseNodeTable({ nodesByKey }) {
 }
 
 function Th({ children }) {
-  return (
-    <th style={{ padding: "8px 10px", textAlign: "left", whiteSpace: "nowrap" }}>
-      {children}
-    </th>
-  )
+  return <th style={{ padding: "8px 10px", textAlign: "left", whiteSpace: "nowrap" }}>{children}</th>
 }
 
 function Td({ children, style }) {
@@ -184,9 +194,18 @@ function Td({ children, style }) {
   )
 }
 
-function TdMono({ children }) {
+function TdMono({ children, style, title }) {
   return (
-    <td style={{ padding: "8px 10px", verticalAlign: "top", whiteSpace: "nowrap", fontFamily: "monospace" }}>
+    <td
+      title={title}
+      style={{
+        padding: "8px 10px",
+        verticalAlign: "top",
+        whiteSpace: "nowrap",
+        fontFamily: "monospace",
+        ...style
+      }}
+    >
       {children}
     </td>
   )
