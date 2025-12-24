@@ -8,33 +8,32 @@ const socket = io(API, {
   transports: ["websocket", "polling"]
 })
 
-
 export default function NodeDashboard() {
   const [nodes, setNodes] = useState({})
   const [stations, setStations] = useState({})
 
   // Debug socket lifecycle (temporary)
   useEffect(() => {
-    {/*}
+    
     const onConnect = () => console.log("socket connected", socket.id)
     const onErr = (err) => {
-        console.log("socket connect_error FULL", err)
-        console.log("message:", err?.message)
-        console.log("description:", err?.description)
-        console.log("type:", err?.type)
-        console.log("context:", err?.context)
-        // socket.io-client often includes the failing XHR in err.context
+       // console.log("socket connect_error FULL", err)
+       // console.log("message:", err?.message)
+       // console.log("description:", err?.description)
+       // console.log("type:", err?.type)
+       // console.log("context:", err?.context)
+       // socket.io-client often includes the failing XHR in err.context
         try {
             const status = err?.context?.status
             const url = err?.context?.url
-            console.log("xhr status:", status, "url:", url)
-            console.log("xhr responseText:", err?.context?.responseText?.slice?.(0, 300))
+            // console.log("xhr status:", status, "url:", url)
+            // console.log("xhr responseText:", err?.context?.responseText?.slice?.(0, 300))
         } catch (e) {}
         }
-    */}
+    
     const onDisc = (reason) => console.log("socket disconnected", reason)
     
-    console.log("socket url =", `${API}/sound-locator/api`)
+    console.log("socket url =", API, "path =", "/sound-locator/api/socket.io")
 
     socket.on("connect", onConnect)
     socket.on("connect_error", onErr)
