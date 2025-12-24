@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { io } from "socket.io-client"
 import DenseNodeTable from "../components/DenseNodeTable"
-
+import SolarBatteryChart from "../components/SolarBatteryChart"
 const API = import.meta.env.VITE_API_URL
 
 // Socket points to nginx host, with explicit socket.io path
@@ -247,6 +247,9 @@ export default function NodeDashboard() {
       <div style={{ marginTop: 24 }}>
         <h2 style={{ margin: "0 0 10px 0" }}>Dense Status Table</h2>
         <DenseNodeTable nodesByKey={nodes} />
+      </div>
+      <div style={{ marginTop: 32 }}>
+      <SolarBatteryChart station="1" kind="esp32" id="S1E3" days={3} />
       </div>
     </div>
   )

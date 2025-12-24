@@ -1,5 +1,6 @@
 const { io } = require("../server")
 const Node = require("../models/Node")
+const NodeSample = require("../models/NodeSample");
 
 const nodes = new Map()
 
@@ -33,6 +34,15 @@ async function handleNodeUpdate({ station, kind, id, name, meta }) {
     { upsert: true, new: true }
   )
 
+    await NodeSample.create({
+    key,
+    station,
+    kind,
+    name,
+    at: new Date(now),
+    meta
+  });
+  
   io.emit("node:update", node)
   updateStationState(station)
 }

@@ -56,6 +56,9 @@ app.use("/node", require("./routes/nodeUpdate"))
 
 app.use("/nodes", require("./routes/nodes"))
 
+const NodeHistoryRoutes = require("./routes/nodeHistory");
+app.use("/nodes", NodeHistoryRoutes);  
+
 // ===== Health =====
 app.get('/', (req, res) => {
   res.send('Express Server');
