@@ -102,7 +102,7 @@ export default function DenseNodeTable({ nodesByKey }) {
     <div style={{ overflowX: "auto", border: "1px solid #222", borderRadius: 10 }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
-          <tr style={{ background: "#111" }}>
+          <tr style={{ background: "#111", color: "#fff" }}>
             <Th>Station</Th>
             <Th>ID</Th>
             <Th>Type</Th>
