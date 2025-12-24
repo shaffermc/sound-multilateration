@@ -1,13 +1,16 @@
 {
-    "stationID": "4",
-    "base_directory": "/home/bob325/recordings/",
-    "hostname": "209.46.124.94",
-    "port": 22,
-    "username": "RPI",
-    "password": "empty",
-    "bandwidth_api_url": "http://209.46.124.94:3000/bandwidth/upload",
-    "station_status_url": "http://209.46.124.94:3000/stationStatus/add_station_status",
-    "instructions_url": "http://209.46.124.94:3000/instructions/get_instructions",
-    "audio_upload_directory": "/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files/",
-    "get_ip_url": "http://209.46.124.94:3000/get-ip"
+  "node_id": "S4R1",
+  "node_name": "Raspberry Pi",
+  "node_kind": "rpi",
+  "base_directory": "/home/bob325/recordings/",
+  "get_ip_url": "http://www.litenby.com/sound-locator/api/get-ip",
+  "node_update_url": "http://www.litenby.com/sound-locator/api/node/update",
+  "interval_seconds": 600,
+  "hostname": "209.46.124.94",
+  "port": 22,
+  "username": "",
+  "password": "",
+  "instructions_url": "http://209.46.124.94:3000/instructions/get_instructions",
+  "audio_upload_directory": "/home/mshaffer/www/sound-multilateration/vps/backend/services/audio_files/",
+  "stationID": "4"
 }

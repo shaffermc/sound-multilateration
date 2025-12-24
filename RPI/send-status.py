@@ -1,109 +1,136 @@
-import psutil
-import socket
-import json
-import requests
-import time
 import os
+import time
+import json
+import socket
+import psutil
+import requests
+import subprocess
 
-# Load config file
-config_path = '/home/bob325/config.json'   
+CONFIG_PATH = "/home/bob325/config.json"
 
-with open(config_path, 'r') as f:
-    config = json.load(f)
-
-# Load values from config
-stationID = config.get('stationID')  # DEFAULT used if not found
-base_directory = config.get('base_directory')
-station_status_url = config.get('station_status_url')
-get_ip_url = config.get('get_ip_url')
-
-# Function to get the uptime in a human-readable format (in minutes, rounded)
-def get_uptime():
-    boot_time = psutil.boot_time()
-    uptime_seconds = time.time() - boot_time
-    uptime_minutes = round(uptime_seconds / 60)  # Convert seconds to minutes and round to the nearest minute
-    return uptime_minutes
-
-# Function to get disk space free in MB (rounded to the nearest whole number)
-def get_free_disk_space():
-    disk_usage = psutil.disk_usage('/')
-    free_space_gb = disk_usage.free / (1024 ** 3)  # Convert from bytes to GB
-    free_space_mb = round(free_space_gb * 1024)  # Convert GB to MB and round to the nearest whole number
-    return free_space_mb
-
-# Function to get the local IP address of the machine
-def get_ip_address():
+# ---- helpers ----
+def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
-        s.connect(('10.254.254.254', 1))
-        ip_address = s.getsockname()[0]
+        s.connect(("10.254.254.254", 1))
+        return s.getsockname()[0]
     except Exception:
-        ip_address = '127.0.0.1'  # fallback to localhost
+        return "127.0.0.1"
     finally:
         s.close()
-    return ip_address
 
-# Function to get the public IP address
-def get_public_ip():
+def get_public_ip(get_ip_url):
     try:
-        response = requests.get(get_ip_url, timeout=5)
-        data = response.json()
-        return data.get("ip")
+        r = requests.get(get_ip_url, timeout=5)
+        # your server returns { ip: "x.x.x.x" } in some versions
+        if "application/json" in r.headers.get("content-type", ""):
+            data = r.json()
+            return data.get("ip") or data.get("public_ip") or None
+        return r.text.strip()
     except Exception as e:
         print(f"Error getting public IP: {e}")
         return None
 
-# Function to upload data to a server
-def upload_data(url, data):
-    headers = {'Content-Type': 'application/json'}
-    try:
-        response = requests.post(url, data=json.dumps(data), headers=headers)
-        if response.status_code == 201:
-            print("Data uploaded successfully.")
-        else:
-            print(f"Failed to upload data. Status Code: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"Error uploading data: {e}")
+def get_uptime_seconds():
+    # more accurate than psutil.boot_time if time changes
+    return int(time.time() - psutil.boot_time())
 
-def get_file_count():
+def get_free_space_bytes(path="/"):
+    return int(psutil.disk_usage(path).free)
+
+def get_file_count(directory):
     try:
-        # List all files in the directory and count them
-        files = [f for f in os.listdir(base_directory) if os.path.isfile(os.path.join(base_directory, f))]
-        return len(files)
+        return sum(
+            1 for f in os.listdir(directory)
+            if os.path.isfile(os.path.join(directory, f))
+        )
     except Exception as e:
-        print(f"Error counting files in directory {base_directory}: {e}")
-        return 0  # Return 0 in case of error
+        print(f"Error counting files in {directory}: {e}")
+        return 0
 
+def get_rssi_dbm(interface="wlan0"):
+    # Optional: works on most Raspberry Pi OS images
+    try:
+        out = subprocess.check_output(["iwconfig", interface], stderr=subprocess.DEVNULL).decode()
+        # look for "Signal level=-60 dBm"
+        for token in out.replace("=", " ").split():
+            if token.lower() == "level":
+                # next token might be like "-60"
+                pass
+        # simpler parse:
+        idx = out.lower().find("signal level=")
+        if idx != -1:
+            tail = out[idx + len("signal level="):]
+            val = tail.split()[0]  # "-60" or "-60dBm"
+            val = val.replace("dBm", "").replace("dbm", "")
+            return int(val)
+    except Exception:
+        return None
+    return None
+
+def post_json(url, payload):
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        if not r.ok:
+            print(f"POST failed {r.status_code}: {r.text[:200]}")
+        else:
+            print(f"OK {r.status_code}")
+        return r.ok
+    except requests.exceptions.RequestException as e:
+        print(f"Error posting: {e}")
+        return False
+
+# ---- main ----
 def main():
+    with open(CONFIG_PATH, "r") as f:
+        config = json.load(f)
+
+    station_id = str(config.get("stationID", "unknown"))        # "1", "2", etc
+    base_directory = config.get("base_directory", "/tmp")
+    get_ip_url = config.get("get_ip_url")                       # e.g. http://www.litenby.com/sound-locator/api/get-ip
+
+    # NEW: unified node update endpoint (set this in config.json going forward)
+    node_update_url = config.get(
+        "node_update_url",
+        "http://www.litenby.com/sound-locator/api/node/update"
+    )
+
+    # identify this device
+    node_id = config.get("node_id", f"S{station_id}R1")         # e.g. "S1R1"
+    node_name = config.get("node_name", "Raspberry Pi")
+
+    interval_s = int(config.get("interval_seconds", 600))
 
     while True:
-        # Gather system information
-        uptime = get_uptime()  # Get uptime in minutes
-        free_disk_space = get_free_disk_space()  # Get free space in MB
-        file_count = get_file_count()
-        local_ip = get_ip_address()
-        public_ip = get_public_ip()
+        uptime_s = get_uptime_seconds()
+        free_space_bytes = get_free_space_bytes("/")
+        file_count = get_file_count(base_directory)
+        local_ip = get_local_ip()
+        public_ip = get_public_ip(get_ip_url) if get_ip_url else None
+        rssi = get_rssi_dbm("wlan0")
 
-        # Prepare the data to send (convert all values to strings)
-        data = {
-            'station_location': str(stationID),  # Ensure location is a string
-            'station_uptime': str(uptime),  # Convert uptime to string
-            'station_free_space': str(free_disk_space),  # Convert free_disk_space to string (MB)
-            'station_file_count': str(file_count), # How many files in record dir
-            'station_local_ip': str(local_ip),  # Convert local_ip to string
-            'station_public_ip': str(public_ip)  # Convert public_ip to string
+        payload = {
+            "station": station_id,
+            "kind": "rpi",
+            "id": node_id,
+            "name": node_name,
+            "meta": {
+                "uptime_s": uptime_s,
+                "local_ip": local_ip,
+                "public_ip": public_ip,
+                "free_space_bytes": free_space_bytes,
+                "file_count": file_count,
+                "rssi": rssi,
+                # If you want: path tracked
+                "record_dir": base_directory
+            }
         }
 
-        # Print the data to the console
-        print(f"Data being sent: {data}")
-        
-        # Upload the data
-        upload_data(station_status_url, data)
+        print("Sending:", payload)
+        post_json(node_update_url, payload)
 
-        # Wait for 10 minutes (600 seconds) before running again
-        time.sleep(600)
-
+        time.sleep(interval_s)
 
 if __name__ == "__main__":
     main()

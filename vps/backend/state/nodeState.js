@@ -3,6 +3,10 @@ const Node = require("../models/Node")
 
 const nodes = new Map()
 
+// thresholds
+const STALE_MS = 15 * 60 * 1000   // 15 minutes
+const OFFLINE_MS = 20 * 60 * 1000 // 20 minutes
+
 function makeKey(station, kind, id) {
   return `${station}:${kind}:${id}`
 }
@@ -17,7 +21,7 @@ async function handleNodeUpdate({ station, kind, id, name, meta }) {
     kind,
     name,
     meta,
-    lastSeen: now,
+    lastSeen: now,   // ms timestamp
     status: "OK"
   }
 
@@ -59,11 +63,12 @@ setInterval(() => {
   const now = Date.now()
 
   for (const node of nodes.values()) {
-    const age = now - new Date(node.lastSeen).getTime()
+    // lastSeen is already a ms timestamp
+    const age = now - node.lastSeen
 
     let next = "OK"
-    if (age > 90000) next = "OFFLINE"
-    else if (age > 70000) next = "STALE"
+    if (age > OFFLINE_MS) next = "OFFLINE"
+    else if (age > STALE_MS) next = "STALE"
 
     if (next !== node.status) {
       node.status = next
