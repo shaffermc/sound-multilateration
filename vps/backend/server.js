@@ -52,9 +52,9 @@ app.use('/presets', PresetsRoutes);
 const InstructionsRoutes = require('./routes/InstructionsRoutes');
 app.use('/instructions', InstructionsRoutes);
 
-app.use("/api/node", require("./routes/nodeUpdate"))
+app.use("/node", require("./routes/nodeUpdate"))
 
-app.use("/api/nodes", require("./routes/nodes"))
+app.use("/nodes", require("./routes/nodes"))
 
 // ===== Health =====
 app.get('/', (req, res) => {

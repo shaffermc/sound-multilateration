@@ -15,6 +15,7 @@ export default function NodeDashboard() {
 
   // Debug socket lifecycle (temporary)
   useEffect(() => {
+    {/*}
     const onConnect = () => console.log("socket connected", socket.id)
     const onErr = (err) => {
         console.log("socket connect_error FULL", err)
@@ -30,7 +31,7 @@ export default function NodeDashboard() {
             console.log("xhr responseText:", err?.context?.responseText?.slice?.(0, 300))
         } catch (e) {}
         }
-
+    */}
     const onDisc = (reason) => console.log("socket disconnected", reason)
     
     console.log("socket url =", `${API}/sound-locator/api`)
@@ -48,7 +49,7 @@ export default function NodeDashboard() {
 
   // 1) Initial snapshot
   useEffect(() => {
-    const url = `${API}/sound-locator/api/api/nodes`
+    const url = `${API}/sound-locator/api/nodes`
 
     fetch(url)
       .then(async (r) => {
