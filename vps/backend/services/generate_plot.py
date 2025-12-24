@@ -81,7 +81,7 @@ try:
     # Hyperbolas
     hyperbolas = []
     x_range = np.linspace(-200, 200, 300)  # adjust as needed
-    y_min, y_max = -200, 200  # bounding box
+    y_min, y_max = -2000, 2000  # bounding box
 
     for i in range(4):
         for j in range(i+1, 4):
