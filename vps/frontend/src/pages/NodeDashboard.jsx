@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import { io } from "socket.io-client"
 import DenseNodeTable from "../components/DenseNodeTable"
 import SolarBatteryChart from "../components/SolarBatteryChart"
+import AddInstruction from "../components/AddInstruction"
+import InstructionsList from "../components/InstructionsList"
 
 const API = import.meta.env.VITE_API_URL
 
@@ -252,6 +254,9 @@ export default function NodeDashboard() {
       <div style={{ marginTop: 32 }}>
       <SolarBatteryChart station="1" kind="esp32" id="S1E3" days={3} />
       </div>
+      <div><AddInstruction /></div>
+      <div><InstructionsList /></div>
+      
     </div>
   )
 }
