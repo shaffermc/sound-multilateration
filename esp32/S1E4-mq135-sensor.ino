@@ -29,36 +29,25 @@ unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with rando
 unsigned long lastRestartTime = 0;
 unsigned long lastPowerOnTime = 0;
 unsigned long wifiTimeOfLastConnection = 0;
+float voltage_to_send = 0;
 
 // =====================
 // Analog Voltage Inputs
 // =====================
-const int SOLAR_ADC_PIN   = 35;   // ADC1 pin
-const int BATTERY_ADC_PIN = 34;   // ADC1 pin
+const int MQ135_PIN = 35;
 
-const float ADC_VREF = 3.3f;
-const float ADC_MAX  = 4095.0f;   // 12-bit ADC
+const float ADC_VREF = 3.3;     // ESP32 ADC reference
+const float ADC_MAX = 4095.0;   // 12-bit ADC
 
-// Divider ratios: Vin = Vadc * ratio
-const float SOLAR_DIV_RATIO   = 7.92f;  // e.g. 100k/15k or 220k/33k
-const float BATTERY_DIV_RATIO = 7.92f;  // your 0-25V module is typically /5
-
-// Optional calibration multipliers (tweak after comparing to a multimeter)
-const float SOLAR_CAL   = 1.0504f;
-const float BATTERY_CAL = 1.0504f;
-
+// Divider ratio = (18k + 33k) / 33k
+const float DIV_RATIO = (18.0 + 33.0) / 33.0;   // ≈ 1.545
 
 // =====================
 // Setup
 // =====================
 void setup() {
   Serial.begin(115200);
-  Serial.println("ESP32 Voltage Reader Starting...");
-
-  analogReadResolution(12); // 0..4095
-  // 11dB allows measuring close to ~3.3V on many ESP32 boards (good general setting)
-  analogSetPinAttenuation(SOLAR_ADC_PIN, ADC_11db);
-  analogSetPinAttenuation(BATTERY_ADC_PIN, ADC_11db);
+  Serial.println("MQ-135 Reader Starting...");
 
   lastPowerOnTime = millis();
   lastRestartTime = millis();
@@ -76,6 +65,14 @@ void loop() {
 
   if (millis() - lastSendTime >= sendInterval) {
     lastSendTime = millis();
+    int raw = analogRead(MQ135_PIN);
+
+    // Voltage seen at the ESP32 pin
+    float v_adc = (raw / ADC_MAX) * ADC_VREF;
+
+    // Actual AO voltage from the sensor
+    float v_sensor = v_adc * DIV_RATIO;
+    voltage_to_send = v_sensor;
     sendAllData();
 
     // Add a small random offset for the next interval (±1 minute)
@@ -83,29 +80,10 @@ void loop() {
   }
 }
 
-float readDividerVoltage(int pin, float dividerRatio, float cal) {
-  // Take a small average to reduce noise (PWM controllers can be noisy)
-  const int N = 20;
-  uint32_t sum = 0;
-  for (int i = 0; i < N; i++) {
-    sum += analogRead(pin);
-    delay(2);
-  }
-  float raw = (float)sum / (float)N;
-
-  float v_adc = (raw / ADC_MAX) * ADC_VREF;     // volts at ADC pin
-  float v_in  = v_adc * dividerRatio * cal;     // scaled back to real voltage
-  return v_in;
-}
-
-
 // =====================
 // Main Data Send
 // =====================
 void sendAllData() {
-
-  float solarVoltage   = readDividerVoltage(SOLAR_ADC_PIN, SOLAR_DIV_RATIO, SOLAR_CAL);
-  float batteryVoltage = readDividerVoltage(BATTERY_ADC_PIN, BATTERY_DIV_RATIO, BATTERY_CAL);
   
   long wifiConnectedS = (millis() - wifiTimeOfLastConnection) / 1000;
   long uptimeS = (millis() - lastPowerOnTime) / 1000;
@@ -116,14 +94,13 @@ void sendAllData() {
     "{"
       "\"station\":\"1\","
       "\"kind\":\"esp32\","
-      "\"id\":\"S1E3\","
-      "\"name\":\"HLG-DC\","
+      "\"id\":\"S1E4\","
+      "\"name\":\"MQ-135\","
       "\"meta\":{"
         "\"wifi_connected_s\":" + String(wifiConnectedS) + ","
         "\"uptime_s\":" + String(uptimeS) + ","
         "\"rssi\":" + String(rssi) + ","
-        "\"solar_voltage\":" + String(solarVoltage, 2) + ","
-        "\"battery_voltage\":" + String(batteryVoltage, 2) +
+        "\"mq_135_voltage\":" + String(voltage_to_send, 2) + ","
       "}"
     "}";
 

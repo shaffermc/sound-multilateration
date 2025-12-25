@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { io } from "socket.io-client"
 import DenseNodeTable from "../components/DenseNodeTable"
 import SolarBatteryChart from "../components/SolarBatteryChart"
+
 const API = import.meta.env.VITE_API_URL
 
 // Socket points to nginx host, with explicit socket.io path

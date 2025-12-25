@@ -1,12 +1,15 @@
-#include <Wire.h>
+#include <DHT.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
 
-// This program reads the voltage of a solar panel and battery and sends it to a server. 
+// This program sends the temperature and other weather data to a remote server. 
 
 // =====================
 // Configuration
 // =====================
+#define DHT_PIN 5
+#define DHT_TYPE DHT22
+
 const char* ssid = "";
 const char* password = "";
 
@@ -14,57 +17,37 @@ String host = "www.litenby.com";
 const int serverPort = 80;
 const char* PATH_UPDATE = "/sound-locator/api/node/update";
 
-// =====================
 // Timing
-// =====================
 const unsigned long BASE_SEND_INTERVAL = 300000UL;       // 5 minutes
 const unsigned long RESTART_INTERVAL = 86400000UL;       // 24 hours
 unsigned long lastSendTime = 0;
 unsigned long sendInterval = BASE_SEND_INTERVAL;         // Will vary with random offset
 
+// Dew point constants
+const float A = 17.271;
+const float B = 237.7;
+
 // =====================
 // Globals
 // =====================
+DHT dht(DHT_PIN, DHT_TYPE);
 
 unsigned long lastRestartTime = 0;
 unsigned long lastPowerOnTime = 0;
 unsigned long wifiTimeOfLastConnection = 0;
 
 // =====================
-// Analog Voltage Inputs
-// =====================
-const int SOLAR_ADC_PIN   = 35;   // ADC1 pin
-const int BATTERY_ADC_PIN = 34;   // ADC1 pin
-
-const float ADC_VREF = 3.3f;
-const float ADC_MAX  = 4095.0f;   // 12-bit ADC
-
-// Divider ratios: Vin = Vadc * ratio
-const float SOLAR_DIV_RATIO   = 7.92f;  // e.g. 100k/15k or 220k/33k
-const float BATTERY_DIV_RATIO = 7.92f;  // your 0-25V module is typically /5
-
-// Optional calibration multipliers (tweak after comparing to a multimeter)
-const float SOLAR_CAL   = 1.0504f;
-const float BATTERY_CAL = 1.0504f;
-
-
-// =====================
 // Setup
 // =====================
 void setup() {
   Serial.begin(115200);
-  Serial.println("ESP32 Voltage Reader Starting...");
-
-  analogReadResolution(12); // 0..4095
-  // 11dB allows measuring close to ~3.3V on many ESP32 boards (good general setting)
-  analogSetPinAttenuation(SOLAR_ADC_PIN, ADC_11db);
-  analogSetPinAttenuation(BATTERY_ADC_PIN, ADC_11db);
+  Serial.println("ESP32 DHT22 Starting...");
 
   lastPowerOnTime = millis();
   lastRestartTime = millis();
 
   connectToWiFi();
-
+  dht.begin();
 }
 
 // =====================
@@ -83,30 +66,23 @@ void loop() {
   }
 }
 
-float readDividerVoltage(int pin, float dividerRatio, float cal) {
-  // Take a small average to reduce noise (PWM controllers can be noisy)
-  const int N = 20;
-  uint32_t sum = 0;
-  for (int i = 0; i < N; i++) {
-    sum += analogRead(pin);
-    delay(2);
-  }
-  float raw = (float)sum / (float)N;
-
-  float v_adc = (raw / ADC_MAX) * ADC_VREF;     // volts at ADC pin
-  float v_in  = v_adc * dividerRatio * cal;     // scaled back to real voltage
-  return v_in;
-}
-
-
 // =====================
 // Main Data Send
 // =====================
 void sendAllData() {
+  // compute strings
+  String wifiUptime = updateWiFiConnectedTimeString();
+  String systemUptime = updateUptimeString();
 
-  float solarVoltage   = readDividerVoltage(SOLAR_ADC_PIN, SOLAR_DIV_RATIO, SOLAR_CAL);
-  float batteryVoltage = readDividerVoltage(BATTERY_ADC_PIN, BATTERY_DIV_RATIO, BATTERY_CAL);
-  
+  // read sensor
+  float tempC = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  if (isnan(tempC) || isnan(humidity)) return;
+
+  float tempF = (tempC * 9.0 / 5.0) + 32.0;
+  float dewPointF = (computeDewPoint(tempC, humidity) * 9.0 / 5.0) + 32.0;
+  float heatIndexF = (computeHeatIndex(tempC, humidity) * 9.0 / 5.0) + 32.0;
+
   long wifiConnectedS = (millis() - wifiTimeOfLastConnection) / 1000;
   long uptimeS = (millis() - lastPowerOnTime) / 1000;
   int rssi = WiFi.RSSI();
@@ -116,24 +92,21 @@ void sendAllData() {
     "{"
       "\"station\":\"1\","
       "\"kind\":\"esp32\","
-      "\"id\":\"S1E3\","
-      "\"name\":\"HLG-DC\","
+      "\"id\":\"S1E2\","
+      "\"name\":\"DHT22\","
       "\"meta\":{"
         "\"wifi_connected_s\":" + String(wifiConnectedS) + ","
         "\"uptime_s\":" + String(uptimeS) + ","
         "\"rssi\":" + String(rssi) + ","
-        "\"solar_voltage\":" + String(solarVoltage, 2) + ","
-        "\"battery_voltage\":" + String(batteryVoltage, 2) +
+        "\"interior_temp_f\":" + String(tempF, 2) + ","
+        "\"interior_humidity_pct\":" + String(humidity, 2) + ","
+        "\"interior_dew_point_f\":" + String(dewPointF, 2) + ","
+        "\"interior_heat_index_f\":" + String(heatIndexF, 2) +
       "}"
     "}";
 
   sendJsonPost(PATH_UPDATE, json);
 }
-
-
-// =====================
-// HTTP Helpers
-// =====================
 
 void sendJsonPost(const char* path, String json) {
   HTTPClient http;
@@ -150,7 +123,6 @@ void sendJsonPost(const char* path, String json) {
     Serial.println("http.begin() failed");
   }
 }
-
 
 // =====================
 // WiFi
@@ -216,4 +188,29 @@ String updateUptimeString() {
          twoDigits(hours) + ":" +
          twoDigits(minutes) + ":" +
          twoDigits(seconds);
+}
+
+float computeDewPoint(float temperature_C, float humidity) {
+  float gamma = (A * temperature_C) / (B + temperature_C) + log(humidity / 100.0);
+  float dewPoint_C = (B * gamma) / (A - gamma);
+  return dewPoint_C;
+}
+
+float computeHeatIndex(float temperature, float humidity) {
+  float c1, c2, c3, c4, c5, c6, c7, c8, c9;
+  
+  // Coefficients for Celsius
+  c1 = -8.78469475556;
+  c2 = 1.61139411;
+  c3 = 2.33854883889;
+  c4 = -0.14611605;
+  c5 = -0.012308094;
+  c6 = -0.0164248277778;
+  c7 = 0.002211732;
+  c8 = 0.00072546;
+  c9 = -0.000003582;
+  
+  float HI = c1 + c2 * temperature + c3 * humidity + c4 * temperature * humidity + c5 * temperature * temperature + c6 * humidity * humidity + c7 * temperature * temperature * humidity + c8 * temperature * humidity * humidity + c9 * temperature * temperature * humidity * humidity;
+  
+  return HI;
 }

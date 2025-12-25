@@ -29,12 +29,7 @@ export default function App() {
       <div style={sectionHeaderStyle}>Enter Date/Time of Sound</div>
       <RetrieveAudio />
       <RetrievalStatus />
-      <div style={sectionHeaderStyle}>Audio File Merging</div>
-      <AudioFileList />
-      <div style={sectionHeaderStyle}>Measure Time Delay Arrival Offsets</div>
-      <div style={{ textAlign: "center" }}>Follow instructions <a href="instructions.html">here</a> to find time delay offsets.</div>
-      <div style={sectionHeaderStyle}>Enter measured time delay offsets:</div>
-      <div style={sectionHeaderStyle}>(Use 0 .09 .11 .04 for example)</div>
+      <div style={sectionHeaderStyle}>Measure the TDOAs and enter here:</div>
       <div>
         <TDOAParameters
           stations={result?.stations || []}
