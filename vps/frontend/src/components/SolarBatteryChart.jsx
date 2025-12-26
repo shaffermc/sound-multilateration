@@ -32,26 +32,28 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
           return r.json()
         })
         .then(json => {
-          console.log("history json ->", json)
           const filtered = json
             .filter(d =>
               typeof d.solar_voltage === "number" ||
               typeof d.battery_voltage === "number"
             )
             .map(d => {
-              const dt = new Date(d.timestamp || d.created_at)
+              const dt = new Date(d.ts) //  parse the UTC timestamp
 
               return {
                 ...d,
-                timeLabel: dt.toLocaleTimeString([], {
+                // Overwrite timeLabel with a LOCAL version
+                timeLabel: dt.toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  timeZone: "America/New_York",  // force Eastern
                 }),
               }
             })
 
           setData(filtered)
         })
+
       }
 
     // initial load
