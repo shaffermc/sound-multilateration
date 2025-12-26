@@ -1,5 +1,5 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useMap } from "react-leaflet";
@@ -63,6 +63,30 @@ export default function TDOAMap({ result }) {
   const hyperbolas = result?.hyperbolas || [];
 
   const colors = ["red", "orange", "blue", "cyan", "yellow", "white"];
+  
+  const makeStationIcon = (label) =>
+    new L.DivIcon({
+      className: "",
+      html: `
+        <div style="
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: blue;
+          border: 2px solid white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 12px;
+        ">
+          ${label}
+        </div>
+      `,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
 
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
@@ -73,21 +97,14 @@ export default function TDOAMap({ result }) {
         {/* ⭐ AUTO-ZOOM WHEN PRESET CHANGES */}
         <ZoomToStations stations={stations} />
 
-        {/* Stations */}
+      {/* Stations */}
       {stations.map((s, i) => (
-        <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
-          <Tooltip
-            permanent
-            direction="right"      // label on the right side
-            offset={[10, 0]}       // nudge it a bit away from the marker
-            opacity={0.9}
-          >
-            Station {i + 1}
-          </Tooltip>
-          <Popup>Station {i + 1}</Popup>
-        </Marker>
+        <Marker
+          key={i}
+          position={[s.lat, s.lon]}
+          icon={makeStationIcon(String.fromCharCode(65 + i))} // 65 = "A"
+        />
       ))}
-
 
       {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (
@@ -115,3 +132,4 @@ export default function TDOAMap({ result }) {
     </MapContainer>
   );
 }
+
