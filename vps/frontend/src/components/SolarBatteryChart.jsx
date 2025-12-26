@@ -19,27 +19,48 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
   useEffect(() => {
     if (!station || !kind || !id) return
 
+    let isCancelled = false
     const url = `${API}/sound-locator/api/nodes/history/${station}/${kind}/${id}?days=${days}`
-    setLoading(true)
-    setError(null)
 
-    fetch(url)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.json()
-      })
-      .then(json => {
-        // Filter out samples without voltages (just in case)
-        const filtered = json.filter(
-          d =>
-            typeof d.solar_voltage === "number" ||
-            typeof d.battery_voltage === "number"
-        )
-        setData(filtered)
-      })
-      .catch(err => setError(err.message || "failed"))
-      .finally(() => setLoading(false))
-  }, [station, kind, id, days])
+    const fetchData = () => {
+      setLoading(prev => (data.length === 0 ? true : prev)) // only show loader on first fetch
+      setError(null)
+
+      fetch(url)
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+          return r.json()
+        })
+        .then(json => {
+          if (isCancelled) return
+          const filtered = json.filter(
+            d =>
+              typeof d.solar_voltage === "number" ||
+              typeof d.battery_voltage === "number"
+          )
+          setData(filtered)
+        })
+        .catch(err => {
+          if (isCancelled) return
+          setError(err.message || "failed")
+        })
+        .finally(() => {
+          if (isCancelled) return
+          setLoading(false)
+        })
+    }
+
+    // initial load
+    fetchData()
+
+    // 🔁 refresh every 10 seconds
+    const interval = setInterval(fetchData, 10000)
+
+    return () => {
+      isCancelled = true
+      clearInterval(interval)
+    }
+  }, [station, kind, id, days]) // refetch if these change
 
   return (
     <div style={{ marginTop: 16, padding: 12, border: "1px solid #333", borderRadius: 10 }}>
@@ -64,7 +85,6 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
               />
               <YAxis
                 tick={{ fontSize: 10 }}
-                // your voltages are probably 0–25ish; this lets it auto-scale
                 domain={["auto", "auto"]}
                 label={{
                   value: "Volts",
@@ -75,7 +95,6 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
               />
               <Tooltip />
               <Legend />
-
               <Line
                 type="monotone"
                 dataKey="solar_voltage"
