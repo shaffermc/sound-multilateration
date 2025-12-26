@@ -32,23 +32,27 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
           return r.json()
         })
         .then(json => {
-          if (isCancelled) return
-          const filtered = json.filter(
-            d =>
+          console.log("history json ->", json)
+          const filtered = json
+            .filter(d =>
               typeof d.solar_voltage === "number" ||
               typeof d.battery_voltage === "number"
-          )
+            )
+            .map(d => {
+              const dt = new Date(d.timestamp || d.created_at)
+
+              return {
+                ...d,
+                timeLabel: dt.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              }
+            })
+
           setData(filtered)
         })
-        .catch(err => {
-          if (isCancelled) return
-          setError(err.message || "failed")
-        })
-        .finally(() => {
-          if (isCancelled) return
-          setLoading(false)
-        })
-    }
+      }
 
     // initial load
     fetchData()
