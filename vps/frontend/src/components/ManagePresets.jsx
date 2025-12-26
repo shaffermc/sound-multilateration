@@ -128,12 +128,12 @@ function ManagePresets({ onResult }) {
       {/* STATION COORDINATES ONLY */}
       {stations.map((s, i) => (
         <div key={i} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
-          <strong>S{String.fromCharCode(65 + i)}</strong>
+          <strong>{String.fromCharCode(65 + i)}</strong>
 
           <span>Lat:</span>
           <input
             type="number"
-            step="0.000001"
+            step="0.0001"
             value={s.lat}
             onChange={e => handleCoordChange(i, 'lat', e.target.value)}
             style={{ width: "80px" }}
@@ -142,7 +142,7 @@ function ManagePresets({ onResult }) {
           <span>Lon:</span>
           <input
             type="number"
-            step="0.000001"
+            step="0.0001"
             value={s.lon}
             onChange={e => handleCoordChange(i, 'lon', e.target.value)}
             style={{ width: "80px" }}

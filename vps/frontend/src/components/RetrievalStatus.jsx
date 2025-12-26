@@ -60,10 +60,9 @@ const fetchInstructions = async () => {
         <thead>
           <tr>
             <th style={{ textAlign: 'left', padding: '2px' }}>Date/Time</th>
-            <th style={{ padding: '2px' }}>S1</th>
-            <th style={{ padding: '2px' }}>S2</th>
-            <th style={{ padding: '2px' }}>S3</th>
-            <th style={{ padding: '2px' }}>S4</th>
+            <th colSpan={4} style={{ textAlign: 'center', padding: '2px' }}>
+              Stations
+            </th>
             <th style={{ padding: '2px' }}>DEL</th>
           </tr>
         </thead>
@@ -78,10 +77,10 @@ const fetchInstructions = async () => {
                   {inst.instruction_value}
                 </a>
               </td>
-              <td style={{ textAlign: 'center', backgroundColor: inst.station1_complete ? '#b6ffb6' : '#f85b5b' }}>S1</td>
-              <td style={{ textAlign: 'center', backgroundColor: inst.station2_complete ? '#b6ffb6' : '#f85b5b' }}>S2</td>
-              <td style={{ textAlign: 'center', backgroundColor: inst.station3_complete ? '#b6ffb6' : '#f85b5b' }}>S3</td>
-              <td style={{ textAlign: 'center', backgroundColor: inst.station4_complete ? '#b6ffb6' : '#f85b5b' }}>S4</td>
+              <td style={{ textAlign: 'center', backgroundColor: inst.station1_complete ? '#b6ffb6' : '#f85b5b' }}>A</td>
+              <td style={{ textAlign: 'center', backgroundColor: inst.station2_complete ? '#b6ffb6' : '#f85b5b' }}>B</td>
+              <td style={{ textAlign: 'center', backgroundColor: inst.station3_complete ? '#b6ffb6' : '#f85b5b' }}>C</td>
+              <td style={{ textAlign: 'center', backgroundColor: inst.station4_complete ? '#b6ffb6' : '#f85b5b' }}>D</td>
               <td style={{ textAlign: 'center' }}>
                 <button
                   onClick={() => handleDelete(inst._id)}
