@@ -111,6 +111,30 @@ const makeOmitIcon = (label) =>
     iconAnchor: [10, 10],
   });
 
+  const makeGlobalIcon = (label = "G") =>
+  new L.DivIcon({
+    className: "",
+    html: `
+      <div style="
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: yellow;
+        border: 2px solid black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: black;
+        font-weight: bold;
+        font-size: 12px;
+      ">
+        ${label}
+      </div>
+    `,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+
 
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
@@ -118,7 +142,7 @@ const makeOmitIcon = (label) =>
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
 
-        {/* ⭐ AUTO-ZOOM WHEN PRESET CHANGES */}
+        {/* AUTO-ZOOM WHEN PRESET CHANGES */}
         <ZoomToStations stations={stations} />
 
       {/* Stations */}
@@ -141,9 +165,10 @@ const makeOmitIcon = (label) =>
 
       {/* Global solution */}
       {global_solution && (
-        <Marker position={[global_solution.lat, global_solution.lon]} icon={yellowIcon}>
-          <Popup>Global Solution</Popup>
-        </Marker>
+        <Marker
+          position={[global_solution.lat, global_solution.lon]}
+          icon={makeGlobalIcon("★")}
+        />
       )}
 
       {/* Hyperbola polylines (each one a different color) */}
