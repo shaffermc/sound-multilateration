@@ -38,18 +38,21 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
               typeof d.battery_voltage === "number"
             )
             .map(d => {
-              const dt = new Date(d.ts) //  parse the UTC timestamp
+              const dt = new Date(d.ts) // UTC timestamp from server
 
               return {
                 ...d,
-                // Overwrite timeLabel with a LOCAL version
+                tsMs: dt.getTime(), // numeric timestamp for X axis
+                // Optional: keep a human time label if you want
                 timeLabel: dt.toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  timeZone: "America/New_York",  // force Eastern
+                  timeZone: "America/New_York",
                 }),
               }
             })
+            .sort((a, b) => a.tsMs - b.tsMs) // make sure data is chronological
+
 
           setData(filtered)
         })
@@ -83,43 +86,63 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
       {data.length > 0 && (
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <XAxis
-                dataKey="timeLabel"
-                tick={{ fontSize: 10 }}
-                minTickGap={24}
-              />
-              <YAxis
-                tick={{ fontSize: 10 }}
-                domain={["auto", "auto"]}
-                label={{
-                  value: "Volts",
-                  angle: -90,
-                  position: "insideLeft",
-                  style: { fontSize: 11 }
-                }}
-              />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="solar_voltage"
-                name="Solar V"
-                stroke="#ff9800"
-                dot={false}
-                strokeWidth={2}
-                connectNulls
-              />
-              <Line
-                type="monotone"
-                dataKey="battery_voltage"
-                name="Battery V"
-                stroke="#4caf50"
-                dot={false}
-                strokeWidth={2}
-                connectNulls
-              />
-            </LineChart>
+           <LineChart data={data}>
+            <XAxis
+              dataKey="tsMs"
+              type="number"
+              domain={["dataMin", "dataMax"]}
+              tick={{ fontSize: 10 }}
+              minTickGap={24}
+              tickFormatter={(value) =>
+                new Date(value).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "America/New_York",
+                })
+              }
+            />
+            <YAxis
+              tick={{ fontSize: 10 }}
+              domain={["auto", "auto"]}
+              label={{
+                value: "Volts",
+                angle: -90,
+                position: "insideLeft",
+                style: { fontSize: 11 }
+              }}
+            />
+            <Tooltip
+              labelFormatter={(value) =>
+                new Date(value).toLocaleString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "America/New_York",
+                })
+              }
+            />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="solar_voltage"
+              name="Solar V"
+              stroke="#ff9800"
+              dot={false}
+              strokeWidth={2}
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="battery_voltage"
+              name="Battery V"
+              stroke="#4caf50"
+              dot={false}
+              strokeWidth={2}
+              connectNulls
+            />
+          </LineChart>
+
           </ResponsiveContainer>
         </div>
       )}
