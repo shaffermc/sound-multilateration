@@ -96,7 +96,7 @@ function ManagePresets({ onResult }) {
         method: "DELETE"
       });
 
-      alert("Deleted.");
+     alert("Deleted.");
 
       setSelectedPresetId("");
       setStations([{lat:0,lon:0},{lat:0,lon:0},{lat:0,lon:0},{lat:0,lon:0}]);

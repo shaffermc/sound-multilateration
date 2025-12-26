@@ -26,7 +26,6 @@ const yellowIcon = new L.DivIcon({
   iconAnchor: [7, 7],
 });
 
-
 function ZoomToStations({ stations }) {
   const map = useMap();
 
@@ -63,7 +62,7 @@ export default function TDOAMap({ result }) {
   const hyperbolas = result?.hyperbolas || [];
 
   const colors = ["red", "orange", "blue", "cyan", "yellow", "white"];
-  
+
   const makeStationIcon = (label) =>
     new L.DivIcon({
       className: "",
@@ -88,6 +87,31 @@ export default function TDOAMap({ result }) {
       iconAnchor: [10, 10],
     });
 
+const makeOmitIcon = (label) =>
+  new L.DivIcon({
+    className: "",
+    html: `
+      <div style="
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: red;
+        border: 2px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+      ">
+        ${label}
+      </div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+
+
   return (
     <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
       <TileLayer
@@ -108,9 +132,11 @@ export default function TDOAMap({ result }) {
 
       {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (
-        <Marker key={`omit-${i}`} position={[p.lat, p.lon]} icon={redIcon}>
-          <Popup>Solution {i + 1}</Popup>
-        </Marker>
+        <Marker
+          key={`omit-${i}`}
+          position={[p.lat, p.lon]}
+          icon={makeOmitIcon(i + 1)}
+        />
       ))}
 
       {/* Global solution */}
