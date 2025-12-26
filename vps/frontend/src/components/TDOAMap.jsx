@@ -74,11 +74,20 @@ export default function TDOAMap({ result }) {
         <ZoomToStations stations={stations} />
 
         {/* Stations */}
-        {stations.map((s, i) => (
-            <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
-            <Popup>Station {i + 1}</Popup>
-            </Marker>
-        ))}
+      {stations.map((s, i) => (
+        <Marker key={i} position={[s.lat, s.lon]} icon={blackIcon}>
+          <Tooltip
+            permanent
+            direction="right"      // label on the right side
+            offset={[10, 0]}       // nudge it a bit away from the marker
+            opacity={0.9}
+          >
+            Station {i + 1}
+          </Tooltip>
+          <Popup>Station {i + 1}</Popup>
+        </Marker>
+      ))}
+
 
       {/* Omit-one solutions */}
       {omit_solutions.map((p, i) => (
