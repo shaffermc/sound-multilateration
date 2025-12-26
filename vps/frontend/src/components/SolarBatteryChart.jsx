@@ -53,8 +53,8 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
     // initial load
     fetchData()
 
-    // 🔁 refresh every 10 seconds
-    const interval = setInterval(fetchData, 10000)
+    // refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000)
 
     return () => {
       isCancelled = true
