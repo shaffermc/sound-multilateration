@@ -1,8 +1,7 @@
-import { useState } from "react";
+// TDOAParameters.jsx
+import React from "react";
 
-export default function TDOAParameters({ stations, onResult }) {
-  const [times, setTimes] = useState([0, 0, 0, 0]);
-
+export default function TDOAParameters({ stations, times, setTimes, onResult }) {
   const handleTimeChange = (index, value) => {
     const updated = [...times];
     updated[index] = parseFloat(value);
@@ -10,6 +9,11 @@ export default function TDOAParameters({ stations, onResult }) {
   };
 
   const fetchJSON = async () => {
+    if (!stations || stations.length !== 4) {
+      alert("Need 4 stations before plotting.");
+      return;
+    }
+
     const query = [
       `lat1=${stations[0].lat}`, `lon1=${stations[0].lon}`,
       `lat2=${stations[1].lat}`, `lon2=${stations[1].lon}`,
@@ -45,22 +49,22 @@ export default function TDOAParameters({ stations, onResult }) {
       </div>
       <div style={sectionHeaderStyle}>Compute and Plot Sound Location:</div>
       <div style={{ textAlign: "center" }}>
-      <button
-        onClick={fetchJSON}
-        style={{
-          fontSize: "16px",
-          padding: "6px 10px",
-          color: "#000000ff",
-          backgroundColor: "#f7f7f7ff",
-        }}
+        <button
+          onClick={fetchJSON}
+          style={{
+            fontSize: "16px",
+            padding: "6px 10px",
+            color: "#000000ff",
+            backgroundColor: "#f7f7f7ff",
+          }}
         >
-        Plot Location on Map
-      </button>
-     </div>
+          Plot Location on Map
+        </button>
+      </div>
     </div>
   );
-
 }
+
 const sectionHeaderStyle = {
   width: "100%",
   maxWidth: "260px",

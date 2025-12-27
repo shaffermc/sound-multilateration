@@ -10,7 +10,19 @@ const PresetSchema = new mongoose.Schema({
   coords: { 
     type: [StationSchema], 
     required: true, 
-    validate: v => v.length === 4 // still enforce 4 coords
+    validate: {
+      validator: v => v.length === 4,
+      message: 'Exactly 4 coordinates are required'
+    }
+  },
+  // NEW: store 4 TDOA values (tA–tD)
+  times: {
+    type: [Number],
+    required: true,
+    validate: {
+      validator: v => v.length === 4,
+      message: 'Exactly 4 time offsets are required'
+    }
   }
 }, { timestamps: true });
 

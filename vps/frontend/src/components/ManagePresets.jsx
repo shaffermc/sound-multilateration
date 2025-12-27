@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function ManagePresets({ onResult }) {
-
+function ManagePresets({ onStationsChange, times, onTimesLoad }) {
   const [dbPresets, setDbPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [newPresetName, setNewPresetName] = useState("");
@@ -25,12 +24,10 @@ function ManagePresets({ onResult }) {
       alert("Error loading presets.");
     }
   };
-    useEffect(() => {
-    async function load() {
-        await loadPresets();
-    }
-    load();
-    }, []);
+
+  useEffect(() => {
+    loadPresets();
+  }, []);
 
   // -------------------------
   // SELECT PRESET
@@ -46,8 +43,16 @@ function ManagePresets({ onResult }) {
       setStations(preset.coords);
       setNewPresetName(preset.name);
 
-      // ⭐ Send stations to map immediately
-      onResult({ stations: preset.coords });
+      // notify parent of new stations
+      onStationsChange(preset.coords);
+
+      // load TDOA times for this preset (if present)
+      if (preset.times && Array.isArray(preset.times) && preset.times.length === 4) {
+        onTimesLoad(preset.times);
+      } else {
+        // fallback for any old presets without times
+        onTimesLoad([0, 0, 0, 0]);
+      }
     }
   };
 
@@ -56,8 +61,8 @@ function ManagePresets({ onResult }) {
     updated[index][axis] = parseFloat(value);
     setStations(updated);
 
-    // ⭐ also send live updates to map
-    onResult({ stations: updated });
+    // also inform parent
+    onStationsChange(updated);
   };
 
   // -------------------------
@@ -76,6 +81,7 @@ function ManagePresets({ onResult }) {
         body: JSON.stringify({
           name: newPresetName,
           coords: stations,
+          times,              // <-- save current TDOA times
         })
       });
 
@@ -96,10 +102,18 @@ function ManagePresets({ onResult }) {
         method: "DELETE"
       });
 
-     alert("Deleted.");
+      alert("Deleted.");
 
       setSelectedPresetId("");
-      setStations([{lat:0,lon:0},{lat:0,lon:0},{lat:0,lon:0},{lat:0,lon:0}]);
+      const resetStations = [
+        { lat: 0, lon: 0 },
+        { lat: 0, lon: 0 },
+        { lat: 0, lon: 0 },
+        { lat: 0, lon: 0 }
+      ];
+      setStations(resetStations);
+      onStationsChange(resetStations);
+      onTimesLoad([0, 0, 0, 0]);
       loadPresets();
     } catch {
       alert("Failed to delete.");
@@ -108,17 +122,16 @@ function ManagePresets({ onResult }) {
 
   return (
     <div style={{
-    padding: "1px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
+      padding: "1px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
     }}>
-
       <select
         value={selectedPresetId}
         onChange={handlePresetChange}
         style={{ width: "80%", marginBottom: "5px" }}
-      > 
+      >
         <option value="">-- Load Coordinate Preset --</option>
         {dbPresets.map(p => (
           <option key={p._id} value={p._id}>{p.name}</option>
@@ -150,49 +163,48 @@ function ManagePresets({ onResult }) {
         </div>
       ))}
 
-{/* SAVE / DELETE */}
-<div
-  style={{
-    marginTop: "10px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "6px",
-  }}
->
-  <input
-    type="text"
-    value={newPresetName}
-    onChange={e => setNewPresetName(e.target.value)}
-    placeholder="Save Preset Name"
-    style={{ width: "180px" }}
-  />
-
-  <div style={{ display: "flex", gap: "6px" }}>
-    <button
-      onClick={savePreset}
-      style={{
-        fontSize: "12px",
-        padding: "4px 8px",
-      }}
-    >
-      Save
-    </button>
-
-    {selectedPresetId && (
-      <button
-        onClick={deletePreset}
+      {/* SAVE / DELETE */}
+      <div
         style={{
-          fontSize: "12px",
-          padding: "4px 8px"
+          marginTop: "10px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "6px",
         }}
       >
-        Delete
-      </button>
-    )}
-  </div>
-</div>
+        <input
+          type="text"
+          value={newPresetName}
+          onChange={e => setNewPresetName(e.target.value)}
+          placeholder="Save Preset Name"
+          style={{ width: "180px" }}
+        />
 
+        <div style={{ display: "flex", gap: "6px" }}>
+          <button
+            onClick={savePreset}
+            style={{
+              fontSize: "12px",
+              padding: "4px 8px",
+            }}
+          >
+            Save
+          </button>
+
+          {selectedPresetId && (
+            <button
+              onClick={deletePreset}
+              style={{
+                fontSize: "12px",
+                padding: "4px 8px"
+              }}
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
