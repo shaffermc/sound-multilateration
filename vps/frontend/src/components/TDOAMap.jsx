@@ -38,6 +38,39 @@ function ZoomToStations({ stations }) {
   return null;
 }
 
+// Colorblind-friendly, professional palette per station pair
+// Stations are A,B,C,D → indices 0,1,2,3
+const pairColors = {
+  "0-1": "#0072B2", // A–B (blue)
+  "0-2": "#009E73", // A–C (green)
+  "0-3": "#E69F00", // A–D (orange)
+  "1-2": "#D55E00", // B–C (vermillion)
+  "1-3": "#CC79A7", // B–D (reddish-purple)
+  "2-3": "#56B4E9", // C–D (light blue)
+};
+
+const pairLabels = {
+  "0-1": "A–B",
+  "0-2": "A–C",
+  "0-3": "A–D",
+  "1-2": "B–C",
+  "1-3": "B–D",
+  "2-3": "C–D",
+};
+
+const legendStyle = {
+  position: "absolute",
+  top: "8px",
+  right: "8px",
+  background: "rgba(255, 255, 255, 0.9)",
+  borderRadius: "6px",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+  padding: "6px 8px",
+  fontSize: "11px",
+  lineHeight: 1.4,
+  zIndex: 1000,
+};
+
 export default function TDOAMap({ result }) {
   const [stationMeta, setStationMeta] = useState({});
 
@@ -50,8 +83,6 @@ export default function TDOAMap({ result }) {
   const omit_solutions = result?.omit_solutions || [];
   const global_solution = result?.global_solution || null;
   const hyperbolas = result?.hyperbolas || [];
-
-  const colors = ["red", "orange", "blue", "cyan", "yellow", "white"];
 
   // Listen for live node updates
   useEffect(() => {
@@ -149,66 +180,92 @@ export default function TDOAMap({ result }) {
     });
 
   return (
-    <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
-      <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      <MapContainer center={mapCenter} zoom={17} style={{ height: "100%", width: "100%" }}>
+        <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
 
-      <ZoomToStations stations={stations} />
+        <ZoomToStations stations={stations} />
 
-      {/* Stations */}
-      {stations.map((s, i) => {
-        // If your node.station matches these, we assume A=1, B=2, etc.
-        const stationId = String(i + 1);
-        const meta = stationMeta[stationId] || {};
-        const label = String.fromCharCode(65 + i); // "A", "B", "C", ...
+        {/* Stations */}
+        {stations.map((s, i) => {
+          const stationId = String(i + 1);
+          const meta = stationMeta[stationId] || {};
+          const label = String.fromCharCode(65 + i); // "A", "B", "C", ...
 
-        return (
+          return (
+            <Marker
+              key={i}
+              position={[s.lat, s.lon]}
+              icon={makeStationIcon(label)}
+            >
+              <Popup>
+                <div style={{ fontSize: "12px", lineHeight: 1.4 }}>
+                  <div><strong>Station {label} (#{stationId})</strong></div>
+                  {meta.uptime_s != null && <div>Uptime: {secToHMS(meta.uptime_s)}</div>}
+                  {typeof meta.battery_voltage === "number" && (
+                    <div>Battery: {meta.battery_voltage.toFixed(2)} V</div>
+                  )}
+                  {typeof meta.temperature_f === "number" && (
+                    <div>Temp: {meta.temperature_f.toFixed(1)} °F</div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
+        {/* Omit-one solutions */}
+        {omit_solutions.map((p, i) => (
           <Marker
-            key={i}
-            position={[s.lat, s.lon]}
-            icon={makeStationIcon(label)}
-          >
-            <Popup>
-              <div style={{ fontSize: "12px", lineHeight: 1.4 }}>
-                <div><strong>Station {label} (#{stationId})</strong></div>
-                {meta.uptime_s != null && <div>Uptime: {secToHMS(meta.uptime_s)}</div>}
-                {typeof meta.battery_voltage === "number" && (
-                  <div>Battery: {meta.battery_voltage.toFixed(2)} V</div>
-                )}
-                {typeof meta.temperature_f === "number" && (
-                  <div>Temp: {meta.temperature_f.toFixed(1)} °F</div>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+            key={`omit-${i}`}
+            position={[p.lat, p.lon]}
+            icon={makeOmitIcon(i + 1)}
+          />
+        ))}
 
-      {/* Omit-one solutions */}
-      {omit_solutions.map((p, i) => (
-        <Marker
-          key={`omit-${i}`}
-          position={[p.lat, p.lon]}
-          icon={makeOmitIcon(i + 1)}
-        />
-      ))}
+        {/* Global solution */}
+        {global_solution && (
+          <Marker
+            position={[global_solution.lat, global_solution.lon]}
+            icon={makeGlobalIcon("★")}
+          />
+        )}
 
-      {/* Global solution */}
-      {global_solution && (
-        <Marker
-          position={[global_solution.lat, global_solution.lon]}
-          icon={makeGlobalIcon("★")}
-        />
-      )}
+        {/* Hyperbola polylines */}
+        {hyperbolas.map((h, idx) => {
+          const pair = h.pair || [];    // [i, j]
+          const key = pair.length === 2 ? `${pair[0]}-${pair[1]}` : String(idx);
+          const color = pairColors[key] || "#999999";
 
-      {/* Hyperbola polylines */}
-      {hyperbolas.map((h, idx) => (
-        <Polyline
-          key={idx}
-          positions={h.points.map((pt) => [pt[0], pt[1]])}
-          color={colors[idx % colors.length]}
-          weight={2}
-        />
-      ))}
-    </MapContainer>
+          return (
+            <Polyline
+              key={idx}
+              positions={h.points.map((pt) => [pt[0], pt[1]])}
+              color={color}
+              weight={2}
+              opacity={0.85}
+            />
+          );
+        })}
+      </MapContainer>
+
+      {/* Hyperbola legend */}
+      <div style={legendStyle}>
+        <div style={{ fontWeight: 600, marginBottom: 2 }}>Hyperbola Pairs</div>
+        {Object.entries(pairLabels).map(([key, label]) => (
+          <div key={key} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span
+              style={{
+                display: "inline-block",
+                width: 14,
+                height: 2,
+                backgroundColor: pairColors[key],
+              }}
+            />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
