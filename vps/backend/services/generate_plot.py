@@ -41,11 +41,14 @@ def tdoa_residuals_global(pos, stations, delays):
 def hyperbola_points(Si, Sj, dd, x_range, y_min, y_max):
     points = []
     for x in x_range:
+        def f(y):
+            return math.dist((x, y), Si) - math.dist((x, y), Sj) - dd
         try:
-            y = brentq(lambda y: math.dist((x, y), Si) - math.dist((x, y), Sj) - dd, y_min, y_max)
+            y = brentq(f, y_min, y_max)
             points.append((x, y))
         except ValueError:
-            continue  # no root in this x
+            # No root in this y-interval for this x
+            continue
     return points
 
 try:
@@ -53,17 +56,18 @@ try:
         raise ValueError("Expected 12 arguments")
 
     # Parse GPS
-    lats = [float(sys.argv[i]) for i in [1,3,5,7]]
-    lons = [float(sys.argv[i]) for i in [2,4,6,8]]
+    lats = [float(sys.argv[i]) for i in [1, 3, 5, 7]]
+    lons = [float(sys.argv[i]) for i in [2, 4, 6, 8]]
     lat_ref, lon_ref = lats[0], lons[0]
     stations_xy = [gps_to_xy(lat_ref, lon_ref, lats[i], lons[i]) for i in range(4)]
 
     # Parse times
-    delays = np.array([float(sys.argv[i]) for i in range(9,13)])
+    delays = np.array([float(sys.argv[i]) for i in range(9, 13)])
     delays = delays - delays[0]  # make relative to first station
 
     # Solve omit-one 3-station cases with proper delay referencing
-    cases = [(1,2,3),(0,2,3),(0,1,3),(0,1,2)]
+    cases = [(1, 2, 3), (0, 2, 3), (0, 1, 3), (0, 1, 2)]
+
     def solve_3station(st_ids):
         st = [stations_xy[i] for i in st_ids]
         # Make delays relative to first station in subset
@@ -76,15 +80,51 @@ try:
 
     # Solve global 4-station least-squares
     guess_global = np.mean(stations_xy, axis=0)
-    global_solution_xy = least_squares(tdoa_residuals_global, guess_global, args=(stations_xy, delays)).x
+    global_solution_xy = least_squares(
+        tdoa_residuals_global, guess_global, args=(stations_xy, delays)
+    ).x
+
+    # -------------------------------
+    # Dynamic bounding box (key fix)
+    # -------------------------------
+    all_x = [s[0] for s in stations_xy] + [p[0] for p in omit_solutions_xy] + [global_solution_xy[0]]
+    all_y = [s[1] for s in stations_xy] + [p[1] for p in omit_solutions_xy] + [global_solution_xy[1]]
+
+    min_x, max_x = min(all_x), max(all_x)
+    min_y, max_y = min(all_y), max(all_y)
+
+    PAD = 0.25  # 25% padding around all known points
+    dx = max_x - min_x
+    dy = max_y - min_y
+    pad_x = dx * PAD
+    pad_y = dy * PAD
+
+    xmin = min_x - pad_x
+    xmax = max_x + pad_x
+    ymin = min_y - pad_y
+    ymax = max_y + pad_y
+
+    # Fallback sizes if stations/solutions are very clustered
+    if dx < 50:  # 50 meters
+        xmin, xmax = min_x - 100, max_x + 100
+    if dy < 50:
+        ymin, ymax = min_y - 100, max_y + 100
+
+    # Optional: clamp to a max extent so we don't explode if something goes weird
+    MAX_EXTENT = 5000.0  # meters from origin
+    xmin = max(xmin, -MAX_EXTENT)
+    xmax = min(xmax,  MAX_EXTENT)
+    ymin = max(ymin, -MAX_EXTENT)
+    ymax = min(ymax,  MAX_EXTENT)
+
+    # Use this dynamic box for hyperbola search
+    x_range = np.linspace(xmin, xmax, 400)
+    y_min, y_max = ymin, ymax
 
     # Hyperbolas
     hyperbolas = []
-    x_range = np.linspace(-2000, 2000, 300)  # adjust as needed
-    y_min, y_max = -2000, 2000  # bounding box
-
     for i in range(4):
-        for j in range(i+1, 4):
+        for j in range(i + 1, 4):
             Si = stations_xy[i]
             Sj = stations_xy[j]
             dd = v * (delays[i] - delays[j])
@@ -96,22 +136,28 @@ try:
     # Convert stations & solutions to GPS
     stations_gps = [{"lat": lats[i], "lon": lons[i]} for i in range(4)]
     omit_gps = [
-        {"lat": xy_to_gps(lat_ref, lon_ref, p[0], p[1])[0],
-         "lon": xy_to_gps(lat_ref, lon_ref, p[0], p[1])[1]}
+        {
+            "lat": xy_to_gps(lat_ref, lon_ref, p[0], p[1])[0],
+            "lon": xy_to_gps(lat_ref, lon_ref, p[0], p[1])[1],
+        }
         for p in omit_solutions_xy
     ]
     global_gps = {
         "lat": xy_to_gps(lat_ref, lon_ref, global_solution_xy[0], global_solution_xy[1])[0],
-        "lon": xy_to_gps(lat_ref, lon_ref, global_solution_xy[0], global_solution_xy[1])[1]
+        "lon": xy_to_gps(lat_ref, lon_ref, global_solution_xy[0], global_solution_xy[1])[1],
     }
 
     # Output JSON
-    print(json.dumps({
-        "stations": stations_gps,
-        "omit_solutions": omit_gps,
-        "global_solution": global_gps,
-        "hyperbolas": hyperbolas
-    }))
+    print(
+        json.dumps(
+            {
+                "stations": stations_gps,
+                "omit_solutions": omit_gps,
+                "global_solution": global_gps,
+                "hyperbolas": hyperbolas,
+            }
+        )
+    )
 
 except Exception as e:
     print(json.dumps({"error": str(e)}))
