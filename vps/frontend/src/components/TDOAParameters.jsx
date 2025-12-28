@@ -1,7 +1,9 @@
 // TDOAParameters.jsx
-import React from "react";
+import React, { useState } from "react";
 
 export default function TDOAParameters({ stations, times, setTimes, onResult }) {
+  const [tempC, setTempC] = useState("");   // <<< NEW
+
   const handleTimeChange = (index, value) => {
     const updated = [...times];
     updated[index] = parseFloat(value);
@@ -19,8 +21,11 @@ export default function TDOAParameters({ stations, times, setTimes, onResult }) 
       `lat2=${stations[1].lat}`, `lon2=${stations[1].lon}`,
       `lat3=${stations[2].lat}`, `lon3=${stations[2].lon}`,
       `lat4=${stations[3].lat}`, `lon4=${stations[3].lon}`,
-      `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`
-    ].join("&");
+      `tA=${times[0]}`, `tB=${times[1]}`, `tC=${times[2]}`, `tD=${times[3]}`,
+      tempC !== "" ? `tempC=${tempC}` : null // <<< NEW
+    ]
+      .filter(Boolean) // remove null if temp empty
+      .join("&");
 
     try {
       const res = await fetch(`/sound-locator/api/generate_plot_json?${query}`);
@@ -33,7 +38,7 @@ export default function TDOAParameters({ stations, times, setTimes, onResult }) 
 
   return (
     <div style={{ padding: "1px" }}>
-      <div style={{ display: "flex", gap: "1px", marginBottom: "1px" }}>
+      <div style={{ display: "flex", gap: "1px", marginBottom: "6px", flexWrap:"wrap" }}>
         {times.map((t, i) => (
           <div key={i}>
             <strong>t{String.fromCharCode(65 + i)}:</strong>
@@ -42,11 +47,25 @@ export default function TDOAParameters({ stations, times, setTimes, onResult }) 
               step="0.01"
               value={t}
               onChange={(e) => handleTimeChange(i, e.target.value)}
-              style={{ width: "50px" }}
+              style={{ width: "60px" }}
             />
           </div>
         ))}
+
+        {/* <<< NEW — Temperature Input >>> */}
+        <div>
+          <strong>Temp (°C):</strong>
+          <input
+            type="number"
+            step="0.1"
+            value={tempC}
+            onChange={(e) => setTempC(e.target.value)}
+            placeholder="e.g. 20"
+            style={{ width: "70px" }}
+          />
+        </div>
       </div>
+
       <div style={sectionHeaderStyle}>Compute and Plot Sound Location:</div>
       <div style={{ textAlign: "center" }}>
         <button

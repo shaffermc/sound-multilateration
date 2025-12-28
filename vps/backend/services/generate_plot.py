@@ -5,7 +5,15 @@ from scipy.optimize import least_squares, brentq
 import math
 import json
 
-v = 343.0  # speed of sound in m/s
+# Default speed of sound (used if no temperature is provided)
+v = 343.0  # m/s
+
+def speed_of_sound_from_temp(temp_c):
+    """
+    Approximate speed of sound in dry air at sea level as a function of temperature.
+    c ≈ 331.3 + 0.606 * T_C  (m/s)
+    """
+    return 331.3 + 0.606 * temp_c   # <<< NEW
 
 def gps_to_xy(lat_ref, lon_ref, lat, lon):
     meters_per_deg_lat = 111320
@@ -52,8 +60,18 @@ def hyperbola_points(Si, Sj, dd, x_range, y_min, y_max):
     return points
 
 try:
-    if len(sys.argv) != 13:
-        raise ValueError("Expected 12 arguments")
+    # Now allow: 
+    #  - 12 arguments (no temperature): keep v = 343
+    #  - 13 arguments: last one is temp_C used to compute v
+    if len(sys.argv) not in (13, 14):  # <<< CHANGED
+        raise ValueError(
+            "Expected 12 arguments (no temp) or 13 arguments (with temp_C)"
+        )
+
+    # If temperature provided, compute v from it
+    if len(sys.argv) == 14:  # <<< NEW
+        temp_c = float(sys.argv[13])
+        v = speed_of_sound_from_temp(temp_c)
 
     # Parse GPS
     lats = [float(sys.argv[i]) for i in [1, 3, 5, 7]]
@@ -147,7 +165,7 @@ try:
         "lon": xy_to_gps(lat_ref, lon_ref, global_solution_xy[0], global_solution_xy[1])[1],
     }
 
-    # Output JSON
+    # Output JSON (you could also include temp_c and v here if you want)
     print(
         json.dumps(
             {
