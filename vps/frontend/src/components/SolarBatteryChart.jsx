@@ -1,3 +1,4 @@
+// components/SolarBatteryChart.jsx
 import { useEffect, useState } from "react"
 import {
   LineChart,
@@ -16,7 +17,7 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // local state for dropdown selection (default from prop)
+  // 🔹 Local state for selectable range
   const [rangeDays, setRangeDays] = useState(days)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
     const url = `${API}/sound-locator/api/nodes/history/${station}/${kind}/${id}?days=${rangeDays}`
 
     const fetchData = () => {
-      setLoading(prev => (data.length === 0 ? true : prev))
+      setLoading(true)
       setError(null)
 
       fetch(url)
@@ -38,12 +39,13 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
           if (isCancelled) return
 
           const filtered = json
-            .filter(d =>
-              typeof d.solar_voltage === "number" ||
-              typeof d.battery_voltage === "number"
+            .filter(
+              d =>
+                typeof d.solar_voltage === "number" ||
+                typeof d.battery_voltage === "number"
             )
             .map(d => {
-              const dt = new Date(d.ts)
+              const dt = new Date(d.ts) // UTC timestamp from server
 
               return {
                 ...d,
@@ -51,8 +53,8 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
                 timeLabel: dt.toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  timeZone: "America/New_York",
-                }),
+                  timeZone: "America/New_York"
+                })
               }
             })
             .sort((a, b) => a.tsMs - b.tsMs)
@@ -67,23 +69,40 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
         })
     }
 
+    // initial load
     fetchData()
+
+    // refresh every 60 seconds
     const interval = setInterval(fetchData, 60000)
 
     return () => {
       isCancelled = true
       clearInterval(interval)
     }
-  }, [station, kind, id, rangeDays])  
+  }, [station, kind, id, rangeDays])
 
   return (
-    <div style={{ marginTop: 16, padding: 12, border: "1px solid #333", borderRadius: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div
+      style={{
+        marginTop: 16,
+        padding: 12,
+        border: "1px solid #333",
+        borderRadius: 10
+      }}
+    >
+      {/* 🔹 Header with title + dropdown */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 8
+        }}
+      >
         <h3 style={{ margin: 0 }}>
-          Solar & Battery Voltage – Station {station} / {id}
+          Solar &amp; Battery Voltage – Station {station} / {id}
         </h3>
 
-        {/* 🔹 Day-range dropdown */}
         <select
           value={rangeDays}
           onChange={e => setRangeDays(Number(e.target.value))}
@@ -111,11 +130,11 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
                 domain={["dataMin", "dataMax"]}
                 tick={{ fontSize: 10 }}
                 minTickGap={24}
-                tickFormatter={(value) =>
+                tickFormatter={value =>
                   new Date(value).toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
-                    timeZone: "America/New_York",
+                    timeZone: "America/New_York"
                   })
                 }
               />
@@ -130,13 +149,13 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
                 }}
               />
               <Tooltip
-                labelFormatter={(value) =>
+                labelFormatter={value =>
                   new Date(value).toLocaleString("en-US", {
                     month: "2-digit",
                     day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
-                    timeZone: "America/New_York",
+                    timeZone: "America/New_York"
                   })
                 }
               />
