@@ -252,7 +252,7 @@ export default function NodeDashboard() {
         <DenseNodeTable nodesByKey={nodes} />
       </div>
       <div style={{ marginTop: 32 }}>
-      <SolarBatteryChart station="1" kind="esp32" id="S1E3" days={3} />
+      <SolarBatteryChart station="1" kind="esp32" id="S1E3" days={7} />
       </div>
       <div><AddInstruction /></div>
       <div><InstructionsList /></div>
