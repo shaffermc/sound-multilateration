@@ -16,14 +16,17 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  // local state for dropdown selection (default from prop)
+  const [rangeDays, setRangeDays] = useState(days)
+
   useEffect(() => {
     if (!station || !kind || !id) return
 
     let isCancelled = false
-    const url = `${API}/sound-locator/api/nodes/history/${station}/${kind}/${id}?days=${days}`
+    const url = `${API}/sound-locator/api/nodes/history/${station}/${kind}/${id}?days=${rangeDays}`
 
     const fetchData = () => {
-      setLoading(prev => (data.length === 0 ? true : prev)) // only show loader on first fetch
+      setLoading(prev => (data.length === 0 ? true : prev))
       setError(null)
 
       fetch(url)
@@ -32,18 +35,19 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
           return r.json()
         })
         .then(json => {
+          if (isCancelled) return
+
           const filtered = json
             .filter(d =>
               typeof d.solar_voltage === "number" ||
               typeof d.battery_voltage === "number"
             )
             .map(d => {
-              const dt = new Date(d.ts) // UTC timestamp from server
+              const dt = new Date(d.ts)
 
               return {
                 ...d,
-                tsMs: dt.getTime(), // numeric timestamp for X axis
-                // Optional: keep a human time label if you want
+                tsMs: dt.getTime(),
                 timeLabel: dt.toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -51,31 +55,45 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
                 }),
               }
             })
-            .sort((a, b) => a.tsMs - b.tsMs) // make sure data is chronological
-
+            .sort((a, b) => a.tsMs - b.tsMs)
 
           setData(filtered)
+          setLoading(false)
         })
+        .catch(err => {
+          if (isCancelled) return
+          setError(err.message)
+          setLoading(false)
+        })
+    }
 
-      }
-
-    // initial load
     fetchData()
-
-    // refresh every 60 seconds
     const interval = setInterval(fetchData, 60000)
 
     return () => {
       isCancelled = true
       clearInterval(interval)
     }
-  }, [station, kind, id, days]) // refetch if these change
+  }, [station, kind, id, rangeDays])  
 
   return (
     <div style={{ marginTop: 16, padding: 12, border: "1px solid #333", borderRadius: 10 }}>
-      <h3 style={{ margin: "0 0 8px 0" }}>
-        Solar & Battery Voltage – Station {station} / {id}
-      </h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ margin: 0 }}>
+          Solar & Battery Voltage – Station {station} / {id}
+        </h3>
+
+        {/* 🔹 Day-range dropdown */}
+        <select
+          value={rangeDays}
+          onChange={e => setRangeDays(Number(e.target.value))}
+          style={{ padding: 4, fontSize: 12 }}
+        >
+          <option value={3}>Last 3 days</option>
+          <option value={7}>Last 7 days</option>
+          <option value={30}>Last 30 days</option>
+        </select>
+      </div>
 
       {loading && <p style={{ fontSize: 12 }}>Loading...</p>}
       {error && <p style={{ fontSize: 12, color: "tomato" }}>Error: {error}</p>}
@@ -86,63 +104,62 @@ export default function SolarBatteryChart({ station, kind, id, days = 3 }) {
       {data.length > 0 && (
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
-           <LineChart data={data}>
-            <XAxis
-              dataKey="tsMs"
-              type="number"
-              domain={["dataMin", "dataMax"]}
-              tick={{ fontSize: 10 }}
-              minTickGap={24}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/New_York",
-                })
-              }
-            />
-            <YAxis
-              tick={{ fontSize: 10 }}
-              domain={["auto", "auto"]}
-              label={{
-                value: "Volts",
-                angle: -90,
-                position: "insideLeft",
-                style: { fontSize: 11 }
-              }}
-            />
-            <Tooltip
-              labelFormatter={(value) =>
-                new Date(value).toLocaleString("en-US", {
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/New_York",
-                })
-              }
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="solar_voltage"
-              name="Solar V"
-              stroke="#ff9800"
-              dot={false}
-              strokeWidth={2}
-              connectNulls
-            />
-            <Line
-              type="monotone"
-              dataKey="battery_voltage"
-              name="Battery V"
-              stroke="#4caf50"
-              dot={false}
-              strokeWidth={2}
-              connectNulls
-            />
-          </LineChart>
-
+            <LineChart data={data}>
+              <XAxis
+                dataKey="tsMs"
+                type="number"
+                domain={["dataMin", "dataMax"]}
+                tick={{ fontSize: 10 }}
+                minTickGap={24}
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/New_York",
+                  })
+                }
+              />
+              <YAxis
+                tick={{ fontSize: 10 }}
+                domain={["auto", "auto"]}
+                label={{
+                  value: "Volts",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { fontSize: 11 }
+                }}
+              />
+              <Tooltip
+                labelFormatter={(value) =>
+                  new Date(value).toLocaleString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/New_York",
+                  })
+                }
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="solar_voltage"
+                name="Solar V"
+                stroke="#ff9800"
+                dot={false}
+                strokeWidth={2}
+                connectNulls
+              />
+              <Line
+                type="monotone"
+                dataKey="battery_voltage"
+                name="Battery V"
+                stroke="#4caf50"
+                dot={false}
+                strokeWidth={2}
+                connectNulls
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
       )}
