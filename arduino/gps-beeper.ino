@@ -10,7 +10,7 @@ static const unsigned long TIME_SYNC_INTERVAL = 86400000; // 24 hours in millise
 TinyGPSPlus gps;
 int relayPin = 9;    // SSR control pin
 int buzzerPin = 3;   // Buzzer Pin
-int ppsPin = 5;      // PPS input pin
+int ppsPin = 2;      // PPS input pin
 unsigned long lastTimeSync = 0; // Variable to track the last time the GPS time was synchronized
 
 SoftwareSerial ss(RXPin, TXPin);

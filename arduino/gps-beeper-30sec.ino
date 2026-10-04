@@ -9,7 +9,7 @@ SoftwareSerial ss(RXPin, TXPin);
 
 const int relayPin  = 9;  // SSR control pin
 const int buzzerPin = 3;  // Piezo buzzer pin
-const int ppsPin    = 5;  // GPS PPS input pin
+const int ppsPin    = 2;  // GPS PPS input pin
 
 volatile bool ppsFlag = false;
 
