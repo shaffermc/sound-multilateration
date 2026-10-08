@@ -24,6 +24,9 @@ const byte ppsPin    = 2;
 // SETTINGS
 // =====================================================
 
+// Keep buzzer disabled until timing is verified
+const bool ENABLE_BUZZER = true;
+
 const unsigned long BEEP_INTERVAL = 60;
 const unsigned long BEEP_DURATION = 100;
 
@@ -32,9 +35,15 @@ const unsigned long BEEP_DURATION = 100;
 // =====================================================
 
 volatile unsigned long ppsCount = 0;
-volatile unsigned long ppsMicros = 0;
+volatile unsigned long lastPpsMicros = 0;
+
+// Reject extra interrupts occurring within 500 ms
+// of the previous PPS pulse.
+volatile unsigned long rejectedPulses = 0;
 
 unsigned long processedPps = 0;
+unsigned long clockPPS = 0;
+
 unsigned long lastPpsMillis = 0;
 
 // =====================================================
@@ -49,14 +58,10 @@ int utcYear  = 0;
 int utcMonth = 0;
 int utcDay   = 0;
 
-// Last valid GPS timestamp
 unsigned long gpsSeconds = 0;
 unsigned long gpsTimestampPPS = 0;
 
 bool gpsTimestampReady = false;
-
-// Number of PPS pulses associated with clock time
-unsigned long clockPPS = 0;
 
 // =====================================================
 // BUZZER VARIABLES
@@ -70,6 +75,8 @@ unsigned long buzzerStart = 0;
 // =====================================================
 
 unsigned long lastDebug = 0;
+unsigned long lastDebugPPS = 0;
+unsigned long lastDebugMillis = 0;
 
 // =====================================================
 // SETUP
@@ -96,10 +103,13 @@ void setup() {
 
   Serial.println();
   Serial.println(F("============================"));
-  Serial.println(F("GT-U7 GPS EASTERN CLOCK"));
+  Serial.println(F("GT-U7 GPS TIME DIAGNOSTIC"));
   Serial.println(F("Arduino Nano"));
   Serial.println(F("============================"));
+  Serial.println(F("Buzzer temporarily disabled"));
   Serial.println(F("Waiting for GPS synchronization..."));
+
+  lastDebugMillis = millis();
 }
 
 // =====================================================
@@ -108,22 +118,16 @@ void setup() {
 
 void loop() {
 
-  // Handle PPS immediately
   processPPS();
 
-  // Read GPS serial data
   readGPS();
 
-  // Synchronize using completed GPS timestamps
   synchronizeClock();
 
-  // Handle buzzer timing
   updateBuzzer();
 
-  // Detect PPS loss
   checkPPS();
 
-  // Diagnostics
   printDiagnostics();
 }
 
@@ -133,8 +137,21 @@ void loop() {
 
 void onPPS() {
 
-  ppsCount++;
-  ppsMicros = micros();
+  unsigned long now = micros();
+
+  // Reject pulses less than 500 ms apart.
+  // The first pulse is accepted.
+
+  if (ppsCount == 0 ||
+      (unsigned long)(now - lastPpsMicros) >= 500000UL) {
+
+    ppsCount++;
+    lastPpsMicros = now;
+
+  } else {
+
+    rejectedPulses++;
+  }
 }
 
 // =====================================================
@@ -148,9 +165,6 @@ void readGPS() {
     char c = gpsSerial.read();
 
     if (gps.encode(c)) {
-
-      // Only use freshly updated time and date.
-      // Require a valid, recent GPS fix.
 
       if (gps.time.isUpdated() &&
           gps.time.isValid() &&
@@ -187,36 +201,23 @@ void synchronizeClock() {
     return;
   }
 
-  if (!gpsTimestampReady) {
+  if (!gpsTimestampReady ||
+      gpsTimestampPPS == 0) {
     return;
   }
-
-  if (gpsTimestampPPS == 0) {
-    return;
-  }
-
-  // The GT-U7 normally sends its NMEA data after
-  // the PPS pulse associated with that second.
-  //
-  // Associate the GPS timestamp with that pulse.
 
   secondsOfDay = gpsSeconds;
-
   clockPPS = gpsTimestampPPS;
 
   clockSynced = true;
-
   gpsTimestampReady = false;
 
   lastPpsMillis = millis();
 
   Serial.println();
-  Serial.println(F("*** GPS PPS SYNCHRONIZED ***"));
+  Serial.println(F("*** INITIAL GPS SYNC ***"));
 
   printEasternTime();
-
-  // Don't beep during initial synchronization.
-  // Wait for the next PPS minute boundary.
 }
 
 // =====================================================
@@ -242,9 +243,6 @@ void processPPS() {
     return;
   }
 
-  // Advance the clock by the number of PPS pulses
-  // since the last clock update.
-
   unsigned long elapsed =
     currentPPS - clockPPS;
 
@@ -254,36 +252,30 @@ void processPPS() {
 
   clockPPS = currentPPS;
 
-  // Advance UTC date when crossing midnight.
   for (unsigned long i = 0; i < elapsed; i++) {
 
     secondsOfDay++;
 
     if (secondsOfDay >= 86400UL) {
-
       secondsOfDay = 0;
       advanceUTCDate();
     }
   }
 
-  // Beep at the beginning of each minute.
-  // Require a recent valid GPS fix.
-
-  if (gps.location.isValid() &&
+  if (ENABLE_BUZZER &&
+      gps.location.isValid() &&
       gps.location.age() < 3000) {
 
     if ((secondsOfDay % BEEP_INTERVAL) == 0) {
-
       startBeep();
     }
   }
 
-  // Print Eastern Time
   printEasternTime();
 }
 
 // =====================================================
-// START BUZZER
+// BUZZER
 // =====================================================
 
 void startBeep() {
@@ -301,10 +293,6 @@ void startBeep() {
   Serial.println(F("*** BEEP ***"));
 }
 
-// =====================================================
-// UPDATE BUZZER
-// =====================================================
-
 void updateBuzzer() {
 
   if (!buzzerActive) {
@@ -321,7 +309,7 @@ void updateBuzzer() {
 }
 
 // =====================================================
-// CHECK PPS SIGNAL
+// PPS TIMEOUT
 // =====================================================
 
 void checkPPS() {
@@ -337,7 +325,6 @@ void checkPPS() {
 
     digitalWrite(buzzerPin, LOW);
     digitalWrite(relayPin, HIGH);
-
     buzzerActive = false;
 
     Serial.println();
@@ -347,21 +334,16 @@ void checkPPS() {
 }
 
 // =====================================================
-// LEAP YEAR
+// LEAP YEAR / DATE FUNCTIONS
 // =====================================================
 
 bool isLeapYear(int year) {
 
   return (
-    (year % 4 == 0 &&
-     year % 100 != 0) ||
+    (year % 4 == 0 && year % 100 != 0) ||
     (year % 400 == 0)
   );
 }
-
-// =====================================================
-// DAYS IN MONTH
-// =====================================================
 
 int daysInMonth(int year, int month) {
 
@@ -376,10 +358,6 @@ int daysInMonth(int year, int month) {
 
   return days[month - 1];
 }
-
-// =====================================================
-// ADVANCE UTC DATE
-// =====================================================
 
 void advanceUTCDate() {
 
@@ -434,17 +412,14 @@ bool isEasternDST(
   int hour
 ) {
 
-  // January, February, December = EST
   if (month < 3 || month > 11) {
     return false;
   }
 
-  // April through October = EDT
   if (month > 3 && month < 11) {
     return true;
   }
 
-  // March: second Sunday, 07:00 UTC
   if (month == 3) {
 
     int firstSunday =
@@ -463,7 +438,6 @@ bool isEasternDST(
     return hour >= 7;
   }
 
-  // November: first Sunday, 06:00 UTC
   if (month == 11) {
 
     int firstSunday =
@@ -484,7 +458,7 @@ bool isEasternDST(
 }
 
 // =====================================================
-// PRINT TWO DIGITS
+// PRINT HELPERS
 // =====================================================
 
 void printTwoDigits(int value) {
@@ -496,14 +470,26 @@ void printTwoDigits(int value) {
   Serial.print(value);
 }
 
+void printHMS(unsigned long totalSeconds) {
+
+  totalSeconds %= 86400UL;
+
+  printTwoDigits(totalSeconds / 3600UL);
+  Serial.print(':');
+
+  printTwoDigits((totalSeconds % 3600UL) / 60UL);
+  Serial.print(':');
+
+  printTwoDigits(totalSeconds % 60UL);
+}
+
 // =====================================================
 // PRINT EASTERN TIME
 // =====================================================
 
 void printEasternTime() {
 
-  int utcHour =
-    secondsOfDay / 3600UL;
+  int utcHour = secondsOfDay / 3600UL;
 
   bool dst = isEasternDST(
     utcYear,
@@ -515,8 +501,7 @@ void printEasternTime() {
   int offset = dst ? -4 : -5;
 
   long easternSeconds =
-    (long)secondsOfDay +
-    offset * 3600L;
+    (long)secondsOfDay + offset * 3600L;
 
   if (easternSeconds < 0) {
     easternSeconds += 86400L;
@@ -524,31 +509,11 @@ void printEasternTime() {
 
   easternSeconds %= 86400L;
 
-  int hour =
-    easternSeconds / 3600;
-
-  int minute =
-    (easternSeconds % 3600) / 60;
-
-  int second =
-    easternSeconds % 60;
-
   Serial.print(F("Eastern Time: "));
 
-  printTwoDigits(hour);
-  Serial.print(':');
+  printHMS(easternSeconds);
 
-  printTwoDigits(minute);
-  Serial.print(':');
-
-  printTwoDigits(second);
-
-  if (dst) {
-    Serial.println(F(" EDT"));
-  }
-  else {
-    Serial.println(F(" EST"));
-  }
+  Serial.println(dst ? F(" EDT") : F(" EST"));
 }
 
 // =====================================================
@@ -557,20 +522,34 @@ void printEasternTime() {
 
 void printDiagnostics() {
 
-  if (millis() - lastDebug < 10000) {
+  if (millis() - lastDebug < 10000UL) {
     return;
   }
 
-  lastDebug = millis();
+  unsigned long nowMillis = millis();
 
   unsigned long count;
+  unsigned long rejected;
 
   noInterrupts();
   count = ppsCount;
+  rejected = rejectedPulses;
   interrupts();
 
+  unsigned long intervalMillis =
+    nowMillis - lastDebugMillis;
+
+  unsigned long intervalPPS =
+    count - lastDebugPPS;
+
+  lastDebug = nowMillis;
+  lastDebugMillis = nowMillis;
+  lastDebugPPS = count;
+
   Serial.println();
-  Serial.println(F("----------------------------"));
+  Serial.println(F("============================"));
+  Serial.println(F("GPS TIMING DIAGNOSTICS"));
+  Serial.println(F("============================"));
 
   Serial.print(F("GPS Characters: "));
   Serial.println(gps.charsProcessed());
@@ -585,19 +564,73 @@ void printDiagnostics() {
       ? F("VALID") : F("NO FIX")
   );
 
-  Serial.print(F("GPS Time: "));
-  Serial.println(
-    gps.time.isValid()
-      ? F("VALID") : F("INVALID")
-  );
+  Serial.print(F("GPS UTC: "));
+
+  if (gps.time.isValid()) {
+
+    printTwoDigits(gps.time.hour());
+    Serial.print(':');
+
+    printTwoDigits(gps.time.minute());
+    Serial.print(':');
+
+    printTwoDigits(gps.time.second());
+    Serial.println();
+
+  } else {
+
+    Serial.println(F("INVALID"));
+  }
+
+  Serial.print(F("Internal UTC: "));
+
+  if (clockSynced) {
+    printHMS(secondsOfDay);
+    Serial.println();
+  } else {
+    Serial.println(F("NOT SYNCED"));
+  }
 
   Serial.print(F("PPS Count: "));
   Serial.println(count);
 
-  Serial.print(F("Clock Synced: "));
-  Serial.println(
-    clockSynced ? F("YES") : F("NO")
-  );
+  Serial.print(F("PPS in interval: "));
+  Serial.println(intervalPPS);
 
-  Serial.println(F("----------------------------"));
+  Serial.print(F("Interval milliseconds: "));
+  Serial.println(intervalMillis);
+
+  Serial.print(F("Rejected PPS edges: "));
+  Serial.println(rejected);
+
+  Serial.print(F("Clock Synced: "));
+  Serial.println(clockSynced ? F("YES") : F("NO"));
+
+  // Compare internal clock with latest GPS time.
+  // This is approximate because NMEA and PPS are
+  // not sampled at exactly the same instant.
+
+  if (clockSynced && gps.time.isValid()) {
+
+    long difference =
+      (long)secondsOfDay -
+      (long)(
+        gps.time.hour() * 3600UL +
+        gps.time.minute() * 60UL +
+        gps.time.second()
+      );
+
+    if (difference > 43200L) {
+      difference -= 86400L;
+    }
+
+    if (difference < -43200L) {
+      difference += 86400L;
+    }
+
+    Serial.print(F("Internal - GPS seconds: "));
+    Serial.println(difference);
+  }
+
+  Serial.println(F("============================"));
 }
